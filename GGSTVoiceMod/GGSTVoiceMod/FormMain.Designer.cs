@@ -29,6 +29,7 @@ namespace GGSTVoiceMod
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
             this.textGamePath = new System.Windows.Forms.TextBox();
             this.btnSelectGame = new System.Windows.Forms.Button();
             this.lblGamePath = new System.Windows.Forms.Label();
@@ -112,6 +113,7 @@ namespace GGSTVoiceMod
             this.Controls.Add(this.lblGamePath);
             this.Controls.Add(this.btnSelectGame);
             this.Controls.Add(this.textGamePath);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(360, 360);
             this.Name = "FormMain";
             this.Text = "GGST Voice Mod";
