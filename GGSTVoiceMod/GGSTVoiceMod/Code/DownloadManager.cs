@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using System;
+using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
@@ -8,15 +10,46 @@ namespace GGSTVoiceMod
     {
         #region Constants
 
+        // I'll be honest I don't understand web stuff, apparently I need this to download things though so here it is!!
         private const string USER_AGENT = "Mozilla/5.0 (Windows; U; Windows NT 6.1; rv:2.2) Gecko/20110201";
 
         // head...
-        private const string METHOD_HEAD = "HEAD";
-        private const string METHOD_GET  = "GET";
+        private const string METHOD_HEAD = "HEAD"; // This makes it download the header data
+        private const string METHOD_GET  = "GET";  // This makes it download the payload data
 
         #endregion
 
         #region Methods
+
+        public static async Task<Stream> DownloadAsset(string charId, string langId)
+        {
+            Paths.CharacterID = charId;
+            Paths.LanguageID  = langId;
+
+            bool cached = File.Exists(Paths.AssetCache);
+
+            if (!cached && Settings.UseCache == true)
+            {
+                string cacheDir = Path.GetDirectoryName(Paths.AssetCache);
+
+                if (!Directory.Exists(cacheDir))
+                    Directory.CreateDirectory(cacheDir);
+
+                using WebClient client = new WebClient();
+                await client.DownloadFileTaskAsync(new Uri(Paths.AssetDownloadURL), Paths.AssetCache);
+                cached = true;
+            }
+
+            if (cached)
+                return File.OpenRead(Paths.AssetCache);
+
+            HttpWebRequest request = WebRequest.CreateHttp(Paths.AssetDownloadURL);
+            request.UserAgent = USER_AGENT;
+            request.Method    = METHOD_GET;
+
+            using WebResponse response = await request.GetResponseAsync();
+            return response.GetResponseStream();
+        }
 
         public static async Task<WebResponse> GetHeaderData(string charId, string langId)
         {

@@ -6,17 +6,32 @@ namespace GGSTVoiceMod
     {
         #region Properties
 
-        public static bool? UseCache   { get; set; }
-        public static bool? BundleMods { get; set; }
+        public static bool? UseCache {
+            get => _useCache;
+            set => _useCache = value;
+        }
+
+        public static bool? BundleMods {
+            get => _bundleMods;
+            set => _bundleMods = value;
+        }
+
+        public static string GamePath {
+            get => _gamePath;
+            set {
+                _gamePath = value;
+                Paths.GameRoot = Path.GetDirectoryName(_gamePath);
+            }
+        }
 
         #endregion
 
-        #region Constructor
+        #region Fields
 
-        static Settings()
-        {
-            Load();
-        }
+        // The first two here could be auto-properties but for consistency I'm keeping them all the same
+        private static bool? _useCache;
+        private static bool? _bundleMods;
+        private static string _gamePath;
 
         #endregion
 
@@ -24,10 +39,10 @@ namespace GGSTVoiceMod
 
         public static void Load()
         {
-            if (!File.Exists(Paths.Settings))
+            if (!File.Exists(Paths.SettingsFile))
                 return;
 
-            string[] lines = File.ReadAllLines(Paths.Settings);
+            string[] lines = File.ReadAllLines(Paths.SettingsFile);
 
             // This is a pretty simple and loose "ini" style settings format, nothing fancy just basic variables
             // It will attempt for interpret anything in the format "[name]=[value]", extra '=' are ignored and improperly formatted lines are skipped 
@@ -51,18 +66,24 @@ namespace GGSTVoiceMod
                         if (bool.TryParse(value, out bool bundle))
                             BundleMods = bundle;
                         break;
+                    case "gameRoot":
+                        if (Directory.Exists(value))
+                            GamePath = value;
+                        break;
                 }
             }
         }
 
         public static void Save()
         {
-            using StreamWriter writer = File.CreateText(Paths.Settings);
+            using StreamWriter writer = File.CreateText(Paths.SettingsFile);
 
             if (UseCache != null)
                 writer.WriteLine($"cache={UseCache}");
             if (BundleMods != null)
                 writer.WriteLine($"bundle={BundleMods}");
+            if (GamePath != null)
+                writer.WriteLine($"gameRoot={GamePath}");
         }
 
         #endregion

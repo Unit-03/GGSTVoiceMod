@@ -103,22 +103,17 @@ namespace GGSTVoiceMod
 
         #region Methods
 
-        public PatchInfo Diff(PatchInfo other)
+        public PatchInfo Diff(PatchInfo newPatch)
         {
-            // This is mostly just to circumvent an issue when the 'other' patch has zero patches and so it never actually iterates and results in an empty diff
-            //  I think it's also probably a little more efficient to do small loops in a big one instead of the other way around but idk it doesn't matter lmao
-            PatchInfo big   = other.Count > Count ? other : this;
-            PatchInfo small = other.Count < Count ? other : this;
+            PatchInfo diff = new PatchInfo();
 
-            PatchInfo patch = new PatchInfo();
-
-            for (int i = 0; i < big.Count; ++i)
+            for (int i = 0; i < this.Count; ++i)
             {
                 bool skip = false;
 
-                for (int u = 0; u < small.Count; ++u)
+                for (int u = 0; u < newPatch.Count; ++u)
                 {
-                    if (big[i] == small[u])
+                    if (newPatch[i] == this[u])
                     {
                         skip = true;
                         break;
@@ -126,10 +121,10 @@ namespace GGSTVoiceMod
                 }
 
                 if (!skip)
-                    patch.AddPatch(big[i]);
+                    diff.AddPatch(this[i]);
             }
 
-            return patch;
+            return diff;
         }
 
         public bool AddPatch(LangPatch patch)

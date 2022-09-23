@@ -1,11 +1,11 @@
 ﻿using System;
 using System.IO;
-using System.Net;
 using System.Linq;
+using System.Collections.Generic;
+using System.Net;
+using System.Threading.Tasks;
 using System.Drawing;
 using System.Windows.Forms;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace GGSTVoiceMod
 {
@@ -45,9 +45,9 @@ namespace GGSTVoiceMod
             Enabled = false;
             Invalidate();
 
-            textGamePath.Enabled = false;
-            btnPatch.Enabled = false;
+            Settings.Load();
 
+            BasicControlsSetup();
             RetrieveLanguageSettings();
             SetupLanguageControls();
 
@@ -59,6 +59,16 @@ namespace GGSTVoiceMod
 
         #region Setup
 
+        private void BasicControlsSetup()
+        {
+            textGamePath.Enabled = false;
+            textGamePath.Text = Settings.GamePath;
+            btnPatch.Enabled  = !string.IsNullOrEmpty(Settings.GamePath);
+
+            settingCache .Checked = Settings.UseCache   ?? false;
+            settingBundle.Checked = Settings.BundleMods ?? false;
+        }
+
         private void RetrieveLanguageSettings()
         {
             previousLanguages = new Dictionary<string, LanguageSettings>();
@@ -66,9 +76,9 @@ namespace GGSTVoiceMod
             foreach (string charId in Constants.CHARACTER_IDS)
                 previousLanguages.Add(charId, new LanguageSettings(charId));
 
-            if (File.Exists(Paths.Manifest))
+            if (File.Exists(Paths.ModManifest))
             {
-                string[] lines = File.ReadAllLines(Paths.Manifest);
+                string[] lines = File.ReadAllLines(Paths.ModManifest);
 
                 for (int i = 0; i < lines.Length; ++i)
                 {
@@ -188,6 +198,22 @@ namespace GGSTVoiceMod
             progressStatus.Value += amount;
         }
 
+        private bool ValidateUnrealPak()
+        {
+            if (!File.Exists(Paths.UPExecutable))
+            {
+                MessageBox.Show("UnrealPak.exe could not be located, without it this tool cannot function\n" +
+                                "Try re-downloading GGSTVoiceMod and trying again\n" +
+                                "If it still doesn't work then please contact me!! (the developer, me, hi! my info is in the 'Help' tab)",
+                                "UnrealPak Missing",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error);
+                return false;
+            }
+
+            return true;
+        }
+
         private async Task<(bool result, long downloadSize)> ValidateAssetData(PatchInfo patch)
         {
             SetStatus("Validating asset data", patch.Count - 1);
@@ -205,8 +231,14 @@ namespace GGSTVoiceMod
 
                     if (!assetsChecked.Contains(assetCode))
                     {
-                        using WebResponse response = await DownloadManager.GetHeaderData(patch[i].Character, patch[i].UseLang);
-                        downloadSize += response.ContentLength;
+                        Paths.CharacterID = patch[i].Character;
+                        Paths.LanguageID  = patch[i].UseLang;
+
+                        if (!File.Exists(Paths.AssetCache))
+                        {
+                            using WebResponse response = await DownloadManager.GetHeaderData(patch[i].Character, patch[i].UseLang);
+                            downloadSize += response.ContentLength;
+                        }
 
                         assetsChecked.Add(assetCode);
                     }
@@ -280,6 +312,11 @@ namespace GGSTVoiceMod
             return result == DialogResult.Yes;
         }
 
+        private void WriteManifest(Dictionary<string, LanguageSettings> settings)
+        {
+            // TODO: Fill this out idiot
+        }
+
         #endregion
 
         #region Callbacks
@@ -287,6 +324,11 @@ namespace GGSTVoiceMod
         private void OnLanguageChanged(string charId, string langId, string selectedLang)
         {
             currentLanguages[charId][langId] = selectedLang;
+        }
+
+        private void FormMain_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Settings.Save();
         }
 
         private void btnSelectGame_Click(object sender, EventArgs e)
@@ -335,8 +377,8 @@ namespace GGSTVoiceMod
                         }
                     }
 
-                    Paths.GameRoot = filePath;
-                    textGamePath.Text = fileSelectGame.FileName;
+                    Settings.GamePath = fileSelectGame.FileName;
+                    textGamePath.Text = Settings.GamePath;
 
                     btnPatch.Enabled = true;
                 }
@@ -346,23 +388,54 @@ namespace GGSTVoiceMod
 
         private async void btnPatch_Click(object sender, EventArgs e)
         {
+            if (!ValidateUnrealPak())
+                return;
+
+            Enabled = false;
+
             PatchInfo prev = new PatchInfo(previousLanguages);
             PatchInfo curr = new PatchInfo(currentLanguages);
 
             PatchInfo diff = curr.Diff(prev);
 
-            if (diff.Count == 0)
-                return;
+            if (diff.Count > 0)
+            {
+                (bool validated, long downloadSize) = await ValidateAssetData(diff);
 
-            (bool validated, long downloadSize) = await ValidateAssetData(diff);
+                if (validated)
+                {
+                    if (Settings.UseCache == null)
+                    {
+                        Settings.UseCache = DisplayCachePrompt(downloadSize);
+                        settingCache.Checked = Settings.UseCache ?? false;
+                    }
+                    if (Settings.BundleMods == null)
+                    {
+                        Settings.BundleMods = DisplayBundlePrompt();
+                        settingBundle.Checked = Settings.BundleMods ?? false;
+                    }
 
-            if (!validated)
-                return;
+                    SetStatus("Generating mods...", diff.Count - 1);
+                    await ModGenerator.Generate(diff, () => IncrementProgress());
+                    ClearStatus();
 
-            if (Settings.UseCache == null)
-                Settings.UseCache = DisplayCachePrompt(downloadSize);
-            if (Settings.BundleMods == null)
-                Settings.BundleMods = DisplayBundlePrompt();
+                    WriteManifest(currentLanguages);
+                }
+            }
+
+            Enabled = true;
+        }
+
+        private void settingCache_Click(object sender, EventArgs e)
+        {
+            Settings.UseCache = !(Settings.UseCache ?? false);
+            settingCache.Checked = (bool)Settings.UseCache;
+        }
+
+        private void settingBundle_Click(object sender, EventArgs e)
+        {
+            Settings.BundleMods = !(Settings.BundleMods ?? false);
+            settingBundle.Checked = (bool)Settings.BundleMods;
         }
 
         #endregion

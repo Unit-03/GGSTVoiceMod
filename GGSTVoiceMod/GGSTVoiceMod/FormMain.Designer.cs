@@ -38,6 +38,11 @@ namespace GGSTVoiceMod
             this.fileSelectGame = new System.Windows.Forms.OpenFileDialog();
             this.progressStatus = new System.Windows.Forms.ProgressBar();
             this.lblStatus = new System.Windows.Forms.Label();
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.menuSettings = new System.Windows.Forms.ToolStripMenuItem();
+            this.settingCache = new System.Windows.Forms.ToolStripMenuItem();
+            this.settingBundle = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // textGamePath
@@ -45,7 +50,7 @@ namespace GGSTVoiceMod
             this.textGamePath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textGamePath.BackColor = System.Drawing.SystemColors.Control;
-            this.textGamePath.Location = new System.Drawing.Point(56, 12);
+            this.textGamePath.Location = new System.Drawing.Point(56, 27);
             this.textGamePath.Name = "textGamePath";
             this.textGamePath.ScrollBars = System.Windows.Forms.ScrollBars.Horizontal;
             this.textGamePath.Size = new System.Drawing.Size(375, 23);
@@ -54,7 +59,7 @@ namespace GGSTVoiceMod
             // btnSelectGame
             // 
             this.btnSelectGame.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSelectGame.Location = new System.Drawing.Point(437, 12);
+            this.btnSelectGame.Location = new System.Drawing.Point(437, 27);
             this.btnSelectGame.Name = "btnSelectGame";
             this.btnSelectGame.Size = new System.Drawing.Size(75, 23);
             this.btnSelectGame.TabIndex = 2;
@@ -66,7 +71,7 @@ namespace GGSTVoiceMod
             // 
             this.lblGamePath.AutoSize = true;
             this.lblGamePath.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.lblGamePath.Location = new System.Drawing.Point(12, 15);
+            this.lblGamePath.Location = new System.Drawing.Point(12, 30);
             this.lblGamePath.Name = "lblGamePath";
             this.lblGamePath.Size = new System.Drawing.Size(38, 15);
             this.lblGamePath.TabIndex = 3;
@@ -81,9 +86,9 @@ namespace GGSTVoiceMod
             this.flowMain.BackColor = System.Drawing.SystemColors.ControlLight;
             this.flowMain.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.flowMain.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.flowMain.Location = new System.Drawing.Point(12, 41);
+            this.flowMain.Location = new System.Drawing.Point(12, 56);
             this.flowMain.Name = "flowMain";
-            this.flowMain.Size = new System.Drawing.Size(500, 570);
+            this.flowMain.Size = new System.Drawing.Size(500, 555);
             this.flowMain.TabIndex = 4;
             this.flowMain.WrapContents = false;
             // 
@@ -123,6 +128,39 @@ namespace GGSTVoiceMod
             this.lblStatus.TabIndex = 7;
             this.lblStatus.Text = "Standby...";
             // 
+            // menuStrip1
+            // 
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.menuSettings});
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(524, 24);
+            this.menuStrip1.TabIndex = 8;
+            this.menuStrip1.Text = "menuStrip1";
+            // 
+            // menuSettings
+            // 
+            this.menuSettings.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.settingCache,
+            this.settingBundle});
+            this.menuSettings.Name = "menuSettings";
+            this.menuSettings.Size = new System.Drawing.Size(61, 20);
+            this.menuSettings.Text = "Settings";
+            // 
+            // settingCache
+            // 
+            this.settingCache.Name = "settingCache";
+            this.settingCache.Size = new System.Drawing.Size(164, 22);
+            this.settingCache.Text = "Download Cache";
+            this.settingCache.Click += new System.EventHandler(this.settingCache_Click);
+            // 
+            // settingBundle
+            // 
+            this.settingBundle.Name = "settingBundle";
+            this.settingBundle.Size = new System.Drawing.Size(164, 22);
+            this.settingBundle.Text = "Bundle Mods";
+            this.settingBundle.Click += new System.EventHandler(this.settingBundle_Click);
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -136,10 +174,15 @@ namespace GGSTVoiceMod
             this.Controls.Add(this.lblGamePath);
             this.Controls.Add(this.btnSelectGame);
             this.Controls.Add(this.textGamePath);
+            this.Controls.Add(this.menuStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MainMenuStrip = this.menuStrip1;
             this.MinimumSize = new System.Drawing.Size(360, 360);
             this.Name = "FormMain";
             this.Text = "GGST Voice Mod";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormMain_FormClosing);
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -154,6 +197,10 @@ namespace GGSTVoiceMod
         private System.Windows.Forms.OpenFileDialog fileSelectGame;
         private System.Windows.Forms.ProgressBar progressStatus;
         private System.Windows.Forms.Label lblStatus;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem menuSettings;
+        private System.Windows.Forms.ToolStripMenuItem settingCache;
+        private System.Windows.Forms.ToolStripMenuItem settingBundle;
     }
 }
 
