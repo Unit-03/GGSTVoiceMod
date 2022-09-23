@@ -36,6 +36,8 @@ namespace GGSTVoiceMod
             this.flowMain = new System.Windows.Forms.FlowLayoutPanel();
             this.btnPatch = new System.Windows.Forms.Button();
             this.fileSelectGame = new System.Windows.Forms.OpenFileDialog();
+            this.progressStatus = new System.Windows.Forms.ProgressBar();
+            this.lblStatus = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // textGamePath
@@ -81,14 +83,14 @@ namespace GGSTVoiceMod
             this.flowMain.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowMain.Location = new System.Drawing.Point(12, 41);
             this.flowMain.Name = "flowMain";
-            this.flowMain.Size = new System.Drawing.Size(500, 599);
+            this.flowMain.Size = new System.Drawing.Size(500, 570);
             this.flowMain.TabIndex = 4;
             this.flowMain.WrapContents = false;
             // 
             // btnPatch
             // 
             this.btnPatch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnPatch.Location = new System.Drawing.Point(437, 646);
+            this.btnPatch.Location = new System.Drawing.Point(437, 617);
             this.btnPatch.Name = "btnPatch";
             this.btnPatch.Size = new System.Drawing.Size(75, 23);
             this.btnPatch.TabIndex = 5;
@@ -102,12 +104,33 @@ namespace GGSTVoiceMod
             this.fileSelectGame.FileName = "GGST.exe";
             this.fileSelectGame.Filter = "Guilty Gear -Strive-|GGST.exe";
             // 
+            // progressStatus
+            // 
+            this.progressStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.progressStatus.Location = new System.Drawing.Point(12, 646);
+            this.progressStatus.Name = "progressStatus";
+            this.progressStatus.Size = new System.Drawing.Size(500, 23);
+            this.progressStatus.TabIndex = 6;
+            // 
+            // lblStatus
+            // 
+            this.lblStatus.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.lblStatus.AutoSize = true;
+            this.lblStatus.Location = new System.Drawing.Point(12, 621);
+            this.lblStatus.Name = "lblStatus";
+            this.lblStatus.Size = new System.Drawing.Size(59, 15);
+            this.lblStatus.TabIndex = 7;
+            this.lblStatus.Text = "Standby...";
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(524, 681);
+            this.Controls.Add(this.lblStatus);
+            this.Controls.Add(this.progressStatus);
             this.Controls.Add(this.btnPatch);
             this.Controls.Add(this.flowMain);
             this.Controls.Add(this.lblGamePath);
@@ -129,6 +152,8 @@ namespace GGSTVoiceMod
         private System.Windows.Forms.FlowLayoutPanel flowMain;
         private System.Windows.Forms.Button btnPatch;
         private System.Windows.Forms.OpenFileDialog fileSelectGame;
+        private System.Windows.Forms.ProgressBar progressStatus;
+        private System.Windows.Forms.Label lblStatus;
     }
 }
 

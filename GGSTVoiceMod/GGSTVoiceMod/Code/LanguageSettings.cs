@@ -35,12 +35,23 @@ namespace GGSTVoiceMod
         public LanguageSettings(string charId)
         {
             CharacterID = charId;
-
             languages = new Dictionary<string, string>();
 
             foreach (string langId in Constants.LANGUAGE_IDS)
                 languages.Add(langId, langId);
         }
+
+        private LanguageSettings(string charId, Dictionary<string, string> settings)
+        {
+            CharacterID = charId;
+            languages = new Dictionary<string, string>(settings);
+        }
+
+        #endregion
+
+        #region Methods
+
+        public LanguageSettings Clone() => new LanguageSettings(CharacterID, languages);
 
         #endregion
     }

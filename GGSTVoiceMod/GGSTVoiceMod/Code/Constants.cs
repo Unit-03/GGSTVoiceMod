@@ -1,20 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System.IO;
+using System.Reflection;
+using System.Collections.Generic;
 
 namespace GGSTVoiceMod
 {
     public static class Constants
     {
-        #region Paths
+        #region Versioning
 
-        public const string ROOT_KEY = "${root}";
-        public const string GAME_KEY = "${game}";
-        public const string LANG_KEY = "${lang}";
-        public const string CHAR_KEY = "${char}";
-
-        public const string ASSET_DOWNLOAD_URL = "https://github.com/Unit-03/GGSTVoiceMod/raw/main/Assets/" + LANG_KEY + "/" + CHAR_KEY + ".zip";
-
-        public const string UNREAL_PAK_PATH = ROOT_KEY + "/UnrealPak/UnrealPak.exe";
-        public const string MODS_PATH       = GAME_KEY + "/RED/Content/Paks/~mods";
+        // THIS DOESN'T EVEN DO ANYTHING I JUST LIKE PUTTING VERSION NUMBERS IN MY SOFTWARE IT'S FUN OKAY?!
+        public const int MAJOR_VER = 0;
+        public const int MINOR_VER = 1;
 
         #endregion
 
