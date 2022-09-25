@@ -540,11 +540,10 @@ namespace GGSTVoiceMod
                     SetStatus("Generating mods", installDiff.Count);
                     await ModGenerator.Generate(installDiff, () => IncrementProgress());
                     ClearStatus();
-
-                    WriteManifest(currentLanguages);
                 }
             }
 
+            WriteManifest(currentLanguages);
             Enabled = true;
         }
 
