@@ -10,12 +10,18 @@ namespace GGSTVoiceMod
         // Just storing the executable directory at launch for use in paths later
         public static readonly string ExecutableRoot = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-        public static string GameRoot    = null; // The root directory for Guilty Gear -Strive-
-        public static string LanguageID  = null; // The current active language ID (e.g. ENG, JPN, etc.)
+        public static string GameRoot = null; // The root directory for Guilty Gear -Strive-
+        public static string LanguageID = null; // The current active language ID (e.g. ENG, JPN, etc.)
         public static string CharacterID = null; // The current active character ID (e.g. RAM, BGT, etc.)
 
-        // The URL that cooked VO assets will be downloaded from (why does VS highlight links, this isn't a web browser...)
-        public static string AssetDownloadURL => $"https://github.com/Unit-03/GGSTVoiceMod/raw/main/Assets/{LanguageID}/{CharacterID}.zip";
+        public static string UpdateAgent => $"{ExecutableRoot}/UpdateAgent.exe";
+
+        public static string GitHubURL        => "https://github.com"; // Root URL for GitHub
+        public static string GitHubUser       => "Unit-03"; // Name of my GitHub account
+        public static string RepoName         => "GGSTVoiceMod"; // Name of the repository for this application
+        public static string RepoURL          => $"{GitHubUser}/{GitHubUser}/{RepoName}"; // The full URL for the repository
+        public static string LatestReleaseURL => $"{RepoURL}/releases/latest"; // The full URL for retrieving the latest release of this repository
+        public static string AssetDownloadURL => $"{RepoURL}/raw/main/Assets/{LanguageID}/{CharacterID}.zip"; // The URL that cooked VO assets will be downloaded from
         public static string AssetCache       => $"{ExecutableRoot}/cache/{LanguageID}/{CharacterID}.zip"; // The directory that downloaded VO assets will be cached at (if the user has caching enabled)
 
         public static string UPRoot         => $"{ExecutableRoot}/UnrealPak"; // Root directory that UnrealPak.exe and it's libraries are stored in

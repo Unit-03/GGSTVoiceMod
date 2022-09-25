@@ -7,9 +7,12 @@ using System.Threading.Tasks;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Net.NetworkInformation;
+using System.Reflection;
 
 namespace GGSTVoiceMod
 {
+    // This file is a little messy and maybe one day I'll refactor it into something better but it works for now!!
     public partial class FormMain : Form
     {
         #region Fields
@@ -33,7 +36,15 @@ namespace GGSTVoiceMod
         public FormMain()
         {
             InitializeComponent();
+            Setup();
+        }
 
+        #endregion
+
+        #region Setup
+
+        private async void Setup()
+        {
             Enabled = false;
             Invalidate();
 
@@ -43,13 +54,70 @@ namespace GGSTVoiceMod
             RetrieveLanguageSettings();
             SetupLanguageControls();
 
-            Enabled = true;
-            Invalidate();
+            if (CheckInternetConnection())
+            {
+                if (await CheckForNewRelease())
+                {
+                    Application.Exit();
+                }
+                else
+                {
+                    Enabled = true;
+                    Invalidate();
+                }
+            }
         }
 
-        #endregion
+        private bool CheckInternetConnection()
+        {
+            Ping ping = new Ping();
+            PingReply reply = ping.Send("8.8.8.8", 1000, new byte[32]);
 
-        #region Setup
+            if (reply.Status != IPStatus.Success)
+            {
+                MessageBox.Show("It seems like you aren't connected to the internet, the tool will be unable to download voice assets to generate mods.\n" +
+                                "If you've already pre-cached assets then you can safely ignore this warning",
+                                "Internet Connection Failed",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Warning);
+                return false;
+            }
+
+            return true;
+        }
+
+        private async Task<bool> CheckForNewRelease()
+        {
+            (bool hasNewer, string version) = await DownloadManager.HasNewRelease();
+
+            if (hasNewer)
+            {
+                DialogResult result = MessageBox.Show("A new version of this tool is available!\n" +
+                                                      "Would you like to download and install it now?", 
+                                                      "New Version", 
+                                                      MessageBoxButtons.YesNo);
+
+                if (result == DialogResult.Yes)
+                {
+                    Process activeProc = Process.GetCurrentProcess();
+                    string arguments = $"{activeProc.Id} {version}";
+
+                    ProcessStartInfo startInfo = new ProcessStartInfo() {
+                        Arguments = arguments,
+                        CreateNoWindow = true,
+                        FileName = Paths.UpdateAgent,
+                        RedirectStandardError = true,
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                    };
+
+                    Process.Start(startInfo);
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         private void BasicControlsSetup()
         {
@@ -279,7 +347,7 @@ namespace GGSTVoiceMod
                         assetsChecked.Add(assetCode);
                     }
                 }
-                catch (WebException)
+                catch
                 {
                     failedPatches.Add(patch[i]);
                     patch.RemovePatch(i);
@@ -504,7 +572,7 @@ namespace GGSTVoiceMod
 
             ClearStatus();
 
-            float megabytes = downloadSize / 1_000_000f;
+            double megabytes = downloadSize / 1_000_000d;
 
             DialogResult result = MessageBox.Show($"Pre-caching all assets will require {megabytes:N2}MBs of space, are you sure you want to pre-cache?",
                                                   "Pre-cache Assets", 

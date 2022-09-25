@@ -2,7 +2,8 @@
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-using System.Collections.Generic;
+
+using Octokit;
 
 namespace GGSTVoiceMod
 {
@@ -20,6 +21,34 @@ namespace GGSTVoiceMod
         #endregion
 
         #region Methods
+
+        public static async Task<(bool, string)> HasNewRelease()
+        {
+            GitHubClient client = new GitHubClient(new ProductHeaderValue(Paths.RepoName), 
+                                                   new Uri($"{Paths.GitHubURL}/{Paths.GitHubUser}"));
+
+            var releases = await client.Repository.Release.GetAll(Paths.GitHubUser, Paths.RepoName);
+
+            if (releases.Count == 0)
+                return (false, null);
+
+            try
+            {
+                string version = releases[0].TagName;
+                string[] verParts = version.Split('.');
+
+                byte major = byte.Parse(verParts[0]);
+                byte minor = byte.Parse(verParts[1]);
+
+                bool isNewer = major > Constants.MAJOR_VER || (major == Constants.MAJOR_VER && minor > Constants.MINOR_VER);
+
+                return (isNewer, version);
+            }
+            catch
+            {
+                return (false, null);
+            }
+        }
 
         public static async Task<Stream> DownloadAsset(string charId, string langId)
         {
