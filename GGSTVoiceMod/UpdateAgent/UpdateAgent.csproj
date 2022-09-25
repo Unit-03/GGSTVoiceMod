@@ -9,6 +9,10 @@
     <PackageReference Include="Octokit" Version="3.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\GGSTVoiceMod\GGSTVoiceMod.csproj" />
+  </ItemGroup>
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="copy &quot;$(TargetDir)&quot; &quot;$(SolutionDir)GGSTVoiceMod\$(OutDir)&quot;" />
   </Target>

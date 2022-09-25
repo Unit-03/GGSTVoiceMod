@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 
 using Octokit;
 
+using GGSTVoiceMod;
+
 namespace UpdateAgent
 {
     class Program
@@ -20,21 +22,25 @@ namespace UpdateAgent
             UpdateToVersion(args[0], args[1]).Wait();
         }
 
-        private static async Task UpdateToVersion(string processId, string version)
+        private static async Task UpdateToVersion(string processId, string versionStr)
         {
             Process parent = Process.GetProcessById(int.Parse(processId));
             parent.WaitForExit();
 
+            SemVersion version = new SemVersion(versionStr);
+
             string root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-            GitHubClient client = new GitHubClient(new ProductHeaderValue("GGSTVoiceMod"),
-                                                   new Uri("https://github.com/Unit-03"));
+            GitHubClient client = new GitHubClient(new ProductHeaderValue(Paths.RepoName),
+                                                   new Uri($"{Paths.GitHubURL}/{Paths.GitHubUser}"));
 
-            var releases = await client.Repository.Release.GetAll("Unit-03", "GGSTVoiceMod");
+            var releases = await client.Repository.Release.GetAll(Paths.GitHubUser, Paths.RepoName);
 
             foreach (var release in releases)
             {
-                if (release.TagName == version)
+                SemVersion releaseVer = new SemVersion(release.TagName);
+
+                if (releaseVer == version)
                 {
                     foreach (var asset in release.Assets)
                     {

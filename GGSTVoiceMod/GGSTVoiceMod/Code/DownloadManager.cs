@@ -22,7 +22,7 @@ namespace GGSTVoiceMod
 
         #region Methods
 
-        public static async Task<(bool, string)> HasNewRelease()
+        public static async Task<(bool, SemVersion)> HasNewRelease()
         {
             GitHubClient client = new GitHubClient(new ProductHeaderValue(Paths.RepoName), 
                                                    new Uri($"{Paths.GitHubURL}/{Paths.GitHubUser}"));
@@ -30,23 +30,19 @@ namespace GGSTVoiceMod
             var releases = await client.Repository.Release.GetAll(Paths.GitHubUser, Paths.RepoName);
 
             if (releases.Count == 0)
-                return (false, null);
+                return (false, default);
 
             try
             {
-                string version = releases[0].TagName;
-                string[] verParts = version.Split('.');
+                SemVersion version = new SemVersion(releases[0].TagName);
 
-                byte major = byte.Parse(verParts[0]);
-                byte minor = byte.Parse(verParts[1]);
-
-                bool isNewer = major > Constants.MAJOR_VER || (major == Constants.MAJOR_VER && minor > Constants.MINOR_VER);
+                bool isNewer = version > SemVersion.Current;
 
                 return (isNewer, version);
             }
             catch
             {
-                return (false, null);
+                return (false, default);
             }
         }
 

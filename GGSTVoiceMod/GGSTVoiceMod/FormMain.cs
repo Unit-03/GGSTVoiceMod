@@ -86,7 +86,7 @@ namespace GGSTVoiceMod
 
         private async Task<bool> CheckForNewRelease()
         {
-            (bool hasNewer, string version) = await DownloadManager.HasNewRelease();
+            (bool hasNewer, SemVersion version) = await DownloadManager.HasNewRelease();
 
             if (hasNewer)
             {
@@ -699,7 +699,8 @@ namespace GGSTVoiceMod
                             "You can choose to either install the mods separately, or bundle them all into a single mod to save on space and load times!\n\n" +
                             "GGSTVoiceMod requires internet access to function as it has to download the voice assets, " +
                             "however you can use the 'Pre-cache' button in the 'File' menu to download everything ahead of time.\n\n" +
-                            "I hope the tool is easy to use and does what you want it to, but if you have any problems you can contact me anytime! Enjoy!! uwu",
+                            "I hope the tool is easy to use and does what you want it to, but if you have any problems you can contact me anytime! Enjoy!! uwu\n\n" +
+                            $"Version: {SemVersion.Current}",
                             "About");
         }
 

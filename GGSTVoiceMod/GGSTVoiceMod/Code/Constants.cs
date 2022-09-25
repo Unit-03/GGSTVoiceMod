@@ -5,14 +5,6 @@ namespace GGSTVoiceMod
 {
     public static class Constants
     {
-        #region Versioning
-
-        // THIS DOESN'T EVEN DO ANYTHING I JUST LIKE PUTTING VERSION NUMBERS IN MY SOFTWARE IT'S FUN OKAY?!
-        public const int MAJOR_VER = 0;
-        public const int MINOR_VER = 1;
-
-        #endregion
-
         #region Languages
 
         public static readonly string[] LANGUAGE_IDS = new string[] {
