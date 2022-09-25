@@ -4,7 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
-    <ApplicationIcon></ApplicationIcon>
+    <ApplicationIcon>Icon (FAU).ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,5 +22,13 @@
   <ItemGroup>
     <PackageReference Include="Octokit" Version="3.0.0" />
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="copy &quot;$(SolutionDir)UpdateAgent\$(OutDir)&quot; &quot;$(TargetDir)&quot;&#xD;&#xA;xcopy &quot;$(TargetDir)&quot; &quot;$(SolutionDir)Builds\$(ConfigurationName)\&quot; /s /y&#xD;&#xA;del &quot;$(SolutionDir)Builds\$(ConfigurationName)\*.dev.json&quot;&#xD;&#xA;del &quot;$(SolutionDir)Builds\$(ConfigurationName)\*.pdb&quot;" />
+  </Target>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="xcopy &quot;$(SolutionDir)..\UnrealPak\&quot; &quot;$(TargetDir)UnrealPak\&quot; /s /y" />
+  </Target>
 
 </Project>

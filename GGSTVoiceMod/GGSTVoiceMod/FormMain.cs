@@ -2,13 +2,11 @@
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
-using System.Net;
 using System.Threading.Tasks;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
-using System.Reflection;
 
 namespace GGSTVoiceMod
 {
@@ -378,7 +376,7 @@ namespace GGSTVoiceMod
                 else
                 {
                     MessageBox.Show($"Failed to validate any of the required assets, the game can't be patched\n" +
-                                    $"This is probably an issue!! Reach out to the developer (that's me! my details are under the 'Help' tab) if you need assistance ^-^",
+                                    $"This is probably an issue!! Reach out to the developer if you need assistance (that's me! my details are under the 'Help' tab) ^-^",
                                     "Validation Failure",
                                     MessageBoxButtons.OK,
                                     MessageBoxIcon.Error);
