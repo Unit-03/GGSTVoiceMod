@@ -23,9 +23,12 @@ namespace GGSTVoiceMod
         public static string UPFileListPath => $"{UPRoot}/{UPFileList}"; // Text file that stores the root directory of the files to create a pak from
         public static string UPExecutable   => $"{UPRoot}/UnrealPak.exe"; // Where the UnrealPak executable is located so we can build the mods at runtime
 
-        public static string GenTemp    => $"{ExecutableRoot}/~temp"; // Root directory for storing temporary files during mod generation
-        public static string GenUnpack  => $"{GenTemp}/{CharacterID}_{LanguageID}"; // Full temporary directory for unpacking asset bundles into
-        public static string GenPakFile => $"{GenUnpack}.pak"; // The output path for a generated pak for a single asset bundle
+        public static string GenTemp          => $"{ExecutableRoot}/~temp"; // Root directory for storing temporary files during mod generation
+        public static string GenUnpack        => $"{GenTemp}/{CharacterID}_{LanguageID}"; // Full temporary directory for unpacking asset archives into
+        public static string GenPakFile       => $"{GenUnpack}.pak"; // The output path for a generated pak for a single mod
+        public static string GenBundleName    => $"VOBundle"; // The name used for bundled mod generation
+        public static string GenBundleUnpack  => $"{GenTemp}/{GenBundleName}"; // Full temporary directory for unpacking
+        public static string GenBundlePakFile => $"{GenBundleUnpack}.pak"; // The output path for the pak file for bundled mods
 
         public static string SettingsFile => $"{ExecutableRoot}/settings.ini"; // Settings file to store the user's preference for things like caching, bundling, etc.
 

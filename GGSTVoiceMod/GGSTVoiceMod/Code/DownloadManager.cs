@@ -63,22 +63,28 @@ namespace GGSTVoiceMod
             return await request.GetResponseAsync();
         }
 
+        public static async Task<long> GetDownloadSize(string charId, string langId)
+        {
+            Paths.CharacterID = charId;
+            Paths.LanguageID  = langId;
+
+            if (File.Exists(Paths.AssetCache))
+                return 0;
+
+            HttpWebRequest request = WebRequest.CreateHttp(Paths.AssetDownloadURL);
+            request.UserAgent = USER_AGENT;
+            request.Method    = METHOD_HEAD;
+
+            using WebResponse response = await request.GetResponseAsync();
+            return response.ContentLength;
+        }
+
         public static async Task<long> GetDownloadSize(PatchInfo patchInfo)
         {
             long totalSize = 0;
 
             foreach (var patch in patchInfo)
-            {
-                Paths.CharacterID = patch.Character;
-                Paths.LanguageID  = patch.UseLang;
-
-                HttpWebRequest request = WebRequest.CreateHttp(Paths.AssetDownloadURL);
-                request.UserAgent = USER_AGENT;
-                request.Method    = METHOD_HEAD;
-
-                using WebResponse response = await request.GetResponseAsync();
-                totalSize += response.ContentLength;
-            }
+                totalSize += await GetDownloadSize(patch.Character, patch.UseLang);
 
             return totalSize;
         }

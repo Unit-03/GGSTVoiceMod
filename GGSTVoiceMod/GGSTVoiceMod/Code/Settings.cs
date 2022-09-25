@@ -4,6 +4,14 @@ namespace GGSTVoiceMod
 {
     public static class Settings
     {
+        #region Constants
+
+        private const string CACHE_ID     = "cache";
+        private const string BUNDLE_ID    = "bundle";
+        private const string GAME_ROOT_ID = "gameRoot";
+
+        #endregion
+
         #region Properties
 
         public static bool? UseCache {
@@ -53,21 +61,21 @@ namespace GGSTVoiceMod
                 if (parts.Length < 2)
                     continue;
 
-                string name  = parts[0].Trim().ToLower();
-                string value = parts[1].Trim().ToLower();
+                string name  = parts[0].Trim();
+                string value = parts[1].Trim();
 
                 switch (name)
                 {
-                    case "cache":
+                    case CACHE_ID:
                         if (bool.TryParse(value, out bool cache))
                             UseCache = cache;
                         break;
-                    case "bundle":
+                    case BUNDLE_ID:
                         if (bool.TryParse(value, out bool bundle))
                             BundleMods = bundle;
                         break;
-                    case "gameRoot":
-                        if (Directory.Exists(value))
+                    case GAME_ROOT_ID:
+                        if (File.Exists(value))
                             GamePath = value;
                         break;
                 }
@@ -79,11 +87,11 @@ namespace GGSTVoiceMod
             using StreamWriter writer = File.CreateText(Paths.SettingsFile);
 
             if (UseCache != null)
-                writer.WriteLine($"cache={UseCache}");
+                writer.WriteLine($"{CACHE_ID}={UseCache}");
             if (BundleMods != null)
-                writer.WriteLine($"bundle={BundleMods}");
+                writer.WriteLine($"{BUNDLE_ID}={BundleMods}");
             if (GamePath != null)
-                writer.WriteLine($"gameRoot={GamePath}");
+                writer.WriteLine($"{GAME_ROOT_ID}={GamePath}");
         }
 
         #endregion

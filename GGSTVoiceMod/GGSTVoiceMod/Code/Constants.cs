@@ -1,6 +1,5 @@
-﻿using System.IO;
-using System.Reflection;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Drawing;
 
 namespace GGSTVoiceMod
 {
@@ -27,18 +26,20 @@ namespace GGSTVoiceMod
         {
             public string ID;
             public string FullName;
+            public Color Colour;
 
-            public LanguageInfo(string id, string fullName)
+            public LanguageInfo(string id, string fullName, Color colour)
             {
                 ID = id;
                 FullName = fullName;
+                Colour = colour;
             }
         }
 
         public static readonly Dictionary<string, LanguageInfo> Languages = new Dictionary<string, LanguageInfo>() {
-            { "ENG", new LanguageInfo("ENG", "English" ) },
-            { "JPN", new LanguageInfo("JPN", "Japanese") },
-            { "KOR", new LanguageInfo("KOR", "Korean"  ) }
+            { "ENG", new LanguageInfo("ENG", "English",  Color.FromArgb(255, 128, 128)) },
+            { "JPN", new LanguageInfo("JPN", "Japanese", Color.FromArgb(128, 255, 128)) },
+            { "KOR", new LanguageInfo("KOR", "Korean",   Color.FromArgb(128, 128, 255)) }
         };
 
         #endregion

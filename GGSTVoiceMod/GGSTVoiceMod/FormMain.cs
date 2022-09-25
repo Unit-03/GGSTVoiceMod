@@ -6,22 +6,12 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace GGSTVoiceMod
 {
     public partial class FormMain : Form
     {
-        // TODO:
-        // - On startup check for an internet connection! this tool doesn't work without it :$
-        // - On startup check if there's a manifest in the mods directory and update the list accordingly
-        // - Download assets when the user clicks "Patch" (checking the cache first if it exists)
-        // - Inform the user about caching and if they choose "yes" then cache the assets
-        // - Inform the user about mod-bundling and branch from there
-        // -> If the user chooses mod-bundling then move all necessary assets to UnrealPak and generate the mod
-        // --> Clear the mods folder and install the new mod
-        // -> If the user doesn't want mod-bundling then build the mods one at a time and move them over to the mods folder
-        // -> Generate a manifest listing which assets are installed
-
         #region Fields
 
         // should these be in Constants.cs? yes. why aren't they? idk get off my back debra
@@ -33,6 +23,8 @@ namespace GGSTVoiceMod
 
         private Dictionary<string, LanguageSettings> previousLanguages = new Dictionary<string, LanguageSettings>();
         private Dictionary<string, LanguageSettings> currentLanguages  = new Dictionary<string, LanguageSettings>();
+
+        private Dictionary<string, Dictionary<string, ComboBox>> languageControls = new Dictionary<string, Dictionary<string, ComboBox>>();
 
         #endregion
 
@@ -71,37 +63,8 @@ namespace GGSTVoiceMod
 
         private void RetrieveLanguageSettings()
         {
-            previousLanguages = new Dictionary<string, LanguageSettings>();
-
-            foreach (string charId in Constants.CHARACTER_IDS)
-                previousLanguages.Add(charId, new LanguageSettings(charId));
-
-            if (File.Exists(Paths.ModManifest))
-            {
-                string[] lines = File.ReadAllLines(Paths.ModManifest);
-
-                for (int i = 0; i < lines.Length; ++i)
-                {
-                    string[] parts = lines[i].Split('=');
-
-                    if (parts.Length < 2)
-                        continue;
-
-                    string[] keys = parts[0].Split('_');
-
-                    string charId = keys[0].Trim().ToUpper();
-                    string langId = keys[1].Trim().ToUpper();
-                    string useId = parts[1].Trim().ToUpper();
-
-                    if (previousLanguages.ContainsKey(charId))
-                    {
-                        if (Constants.LANGUAGE_IDS.Contains(langId) && Constants.LANGUAGE_IDS.Contains(useId))
-                            previousLanguages[charId][langId] = useId;
-                    }
-                }
-            }
-
-            currentLanguages = new Dictionary<string, LanguageSettings>(previousLanguages.Count);
+            previousLanguages = ReadManifest();
+            currentLanguages  = new Dictionary<string, LanguageSettings>(previousLanguages.Count);
 
             foreach (var pair in previousLanguages)
                 currentLanguages.Add(pair.Key, pair.Value.Clone());
@@ -131,6 +94,8 @@ namespace GGSTVoiceMod
 
             flowMain.Controls.Add(headerFlow);
 
+            languageControls = new Dictionary<string, Dictionary<string, ComboBox>>();
+
             foreach (var charId in Constants.CHARACTER_IDS)
             {
                 FlowLayoutPanel charFlow = SetupCharacterRow(charId);
@@ -155,6 +120,8 @@ namespace GGSTVoiceMod
                 TextAlign = ContentAlignment.MiddleLeft
             });
 
+            languageControls.Add(charId, new Dictionary<string, ComboBox>());
+
             foreach (string langId in Constants.LANGUAGE_IDS)
             {
                 ComboBox dropdown = new ComboBox() {
@@ -163,10 +130,12 @@ namespace GGSTVoiceMod
                 };
 
                 dropdown.Items.AddRange(Constants.LANGUAGE_IDS);
-                dropdown.SelectedItem = langId;
-                dropdown.SelectedIndexChanged += (obj, args) => OnLanguageChanged(charId, langId, dropdown.SelectedItem.ToString());
-
+                dropdown.SelectedIndexChanged += (obj, args) => SetLanguage(charId, langId, dropdown.SelectedItem.ToString(), true);
                 flow.Controls.Add(dropdown);
+
+                languageControls[charId].Add(langId, dropdown);
+
+                SetLanguage(charId, langId, currentLanguages[charId][langId]);
             }
 
             return flow;
@@ -176,10 +145,85 @@ namespace GGSTVoiceMod
 
         #region Utility
 
+        private Dictionary<string, LanguageSettings> ReadManifest()
+        {
+            Dictionary<string, LanguageSettings> manifest = new Dictionary<string, LanguageSettings>();
+
+            foreach (string charId in Constants.CHARACTER_IDS)
+                manifest.Add(charId, new LanguageSettings(charId));
+
+            if (File.Exists(Paths.ModManifest))
+            {
+                string[] lines = File.ReadAllLines(Paths.ModManifest);
+
+                for (int i = 0; i < lines.Length; ++i)
+                {
+                    string[] parts = lines[i].Split('=');
+
+                    if (parts.Length < 2)
+                        continue;
+
+                    string[] keys = parts[0].Split('_');
+
+                    string charId = keys[0].Trim().ToUpper();
+                    string langId = keys[1].Trim().ToUpper();
+                    string useId = parts[1].Trim().ToUpper();
+
+                    if (manifest.ContainsKey(charId))
+                    {
+                        if (Constants.LANGUAGE_IDS.Contains(langId) && Constants.LANGUAGE_IDS.Contains(useId))
+                            manifest[charId][langId] = useId;
+                    }
+                }
+            }
+
+            return manifest;
+        }
+
+        private void WriteManifest(Dictionary<string, LanguageSettings> settings)
+        {
+            string manifestDir = Path.GetDirectoryName(Paths.ModManifest);
+
+            if (!Directory.Exists(manifestDir))
+                Directory.CreateDirectory(manifestDir);
+
+            using StreamWriter writer = File.CreateText(Paths.ModManifest);
+
+            foreach (string charId in settings.Keys)
+            {
+                foreach (string langId in Constants.LANGUAGE_IDS)
+                {
+                    // No point writing languages that haven't been changed
+                    if (langId == settings[charId][langId])
+                        continue;
+
+                    writer.WriteLine($"{charId}_{langId}={settings[charId][langId]}");
+                }
+            }
+
+            previousLanguages.Clear();
+
+            foreach (var pair in settings)
+                previousLanguages.Add(pair.Key, pair.Value.Clone());
+        }
+
+        private void SetLanguage(string charId, string langId, string value, bool fromDropdown = false)
+        {
+            if (!fromDropdown)
+            {
+                languageControls[charId][langId].SelectedItem = value;
+            }
+            else
+            {
+                currentLanguages[charId][langId] = value;
+                languageControls[charId][langId].BackColor = Constants.Languages[value].Colour;
+            }
+        }
+
         private void SetStatus(string text, int progressSize)
         {
             lblStatus.Text = text;
-            progressStatus.Maximum = progressSize;
+            progressStatus.Maximum = progressSize > 0 ? progressSize : 0;
             progressStatus.Value = 0;
         }
 
@@ -216,7 +260,7 @@ namespace GGSTVoiceMod
 
         private async Task<(bool result, long downloadSize)> ValidateAssetData(PatchInfo patch)
         {
-            SetStatus("Validating asset data", patch.Count - 1);
+            SetStatus("Validating asset data", patch.Count);
 
             long downloadSize = 0;
             List<string> assetsChecked = new List<string>();
@@ -231,15 +275,7 @@ namespace GGSTVoiceMod
 
                     if (!assetsChecked.Contains(assetCode))
                     {
-                        Paths.CharacterID = patch[i].Character;
-                        Paths.LanguageID  = patch[i].UseLang;
-
-                        if (!File.Exists(Paths.AssetCache))
-                        {
-                            using WebResponse response = await DownloadManager.GetHeaderData(patch[i].Character, patch[i].UseLang);
-                            downloadSize += response.ContentLength;
-                        }
-
+                        downloadSize += await DownloadManager.GetDownloadSize(patch[i].Character, patch[i].UseLang);
                         assetsChecked.Add(assetCode);
                     }
                 }
@@ -290,7 +326,7 @@ namespace GGSTVoiceMod
             double cacheMBs = downloadSize / 1_000_000d;
 
             DialogResult result = MessageBox.Show("Would you like to cache the downloaded assets so you don't have to download them again next time?\n" +
-                                                  $"This will require approximately {cacheMBs:N2}MBs of storage space\n\n" +
+                                                  $"For this run it will require approximately {cacheMBs:N2}MBs of storage space\n\n" +
                                                   $"You can change this setting from the 'Settings' tab at any time",
                                                   "Download Cache",
                                                   MessageBoxButtons.YesNo,
@@ -312,11 +348,6 @@ namespace GGSTVoiceMod
             return result == DialogResult.Yes;
         }
 
-        private void WriteManifest(Dictionary<string, LanguageSettings> settings)
-        {
-            // TODO: Fill this out idiot
-        }
-
         #endregion
 
         #region Callbacks
@@ -324,6 +355,7 @@ namespace GGSTVoiceMod
         private void OnLanguageChanged(string charId, string langId, string selectedLang)
         {
             currentLanguages[charId][langId] = selectedLang;
+            languageControls[charId][langId].BackColor = Constants.Languages[selectedLang].Colour;
         }
 
         private void FormMain_FormClosing(object sender, FormClosingEventArgs e)
@@ -396,11 +428,35 @@ namespace GGSTVoiceMod
             PatchInfo prev = new PatchInfo(previousLanguages);
             PatchInfo curr = new PatchInfo(currentLanguages);
 
-            PatchInfo diff = curr.Diff(prev);
-
-            if (diff.Count > 0)
+            // First we gotta go through and uninstall any old mods that the user didn't set this time
+            if (Directory.Exists(Paths.ModInstall))
             {
-                (bool validated, long downloadSize) = await ValidateAssetData(diff);
+                PatchInfo uninstallDiff = prev.Diff(curr);
+
+                if (uninstallDiff.Count > 0)
+                {
+                    SetStatus("Uninstalling old mods", uninstallDiff.Count);
+
+                    foreach (var patch in uninstallDiff)
+                    {
+                        string modRoot = Path.Combine(Paths.ModInstall, patch.Character);
+
+                        if (Directory.Exists(modRoot))
+                            Directory.Delete(modRoot, true);
+
+                        IncrementProgress();
+                    }
+
+                    ClearStatus();
+                }
+            }
+
+            // Now we can install the new stuff!
+            PatchInfo installDiff = curr.Diff(prev);
+
+            if (installDiff.Count > 0)
+            {
+                (bool validated, long downloadSize) = await ValidateAssetData(installDiff);
 
                 if (validated)
                 {
@@ -415,8 +471,8 @@ namespace GGSTVoiceMod
                         settingBundle.Checked = Settings.BundleMods ?? false;
                     }
 
-                    SetStatus("Generating mods...", diff.Count - 1);
-                    await ModGenerator.Generate(diff, () => IncrementProgress());
+                    SetStatus("Generating mods", installDiff.Count);
+                    await ModGenerator.Generate(installDiff, () => IncrementProgress());
                     ClearStatus();
 
                     WriteManifest(currentLanguages);
@@ -424,6 +480,139 @@ namespace GGSTVoiceMod
             }
 
             Enabled = true;
+        }
+
+        private async void filePrecache_Click(object sender, EventArgs e)
+        {
+            Enabled = false;
+
+            Settings.UseCache = true;
+
+            int assetCount = Constants.CHARACTER_IDS.Length * Constants.LANGUAGE_IDS.Length;
+            long downloadSize = 0;
+
+            SetStatus("Calculating download size", assetCount);
+
+            foreach (string charId in Constants.CHARACTER_IDS)
+            {
+                foreach (string langId in Constants.LANGUAGE_IDS)
+                {
+                    downloadSize += await DownloadManager.GetDownloadSize(charId, langId);
+                    IncrementProgress();
+                }
+            }
+
+            ClearStatus();
+
+            float megabytes = downloadSize / 1_000_000f;
+
+            DialogResult result = MessageBox.Show($"Pre-caching all assets will require {megabytes:N2}MBs of space, are you sure you want to pre-cache?",
+                                                  "Pre-cache Assets", 
+                                                  MessageBoxButtons.YesNo);
+
+            if (result == DialogResult.Yes)
+            {
+                SetStatus("Pre-caching assets", assetCount);
+
+                foreach (string charId in Constants.CHARACTER_IDS)
+                {
+                    foreach (string langId in Constants.LANGUAGE_IDS)
+                    {
+                        await DownloadManager.DownloadAsset(charId, langId);
+                        IncrementProgress();
+                    }
+                }
+
+                ClearStatus();
+            }
+
+            Enabled = true;
+        }
+
+        private void fileUninstall_Click(object sender, EventArgs e)
+        {
+            if (Directory.Exists(Paths.ModInstall))
+            {
+                DialogResult result = MessageBox.Show("Are you sure you want to uninstall all the voice mods?\n" +
+                                                      "You won't be able to recover them and will have to generate them again later",
+                                                      "Uninstall All",
+                                                      MessageBoxButtons.YesNo,
+                                                      MessageBoxIcon.Question);
+
+                if (result == DialogResult.Yes)
+                    Directory.Delete(Paths.ModInstall, true);
+            }
+            else
+            {
+                MessageBox.Show("You haven't installed anything yet!!", "ahhh, etto...bwehhhh _/xwx\\_");
+            }
+        }
+
+        private void fileSaveFile_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog file = new SaveFileDialog() {
+                AddExtension = true,
+                DefaultExt = "ivo",
+                Filter = "Individual Voice Options|*.ivo",
+                OverwritePrompt = true,
+                InitialDirectory = Paths.ExecutableRoot,
+                RestoreDirectory = true
+            };
+
+            if (file.ShowDialog() == DialogResult.OK)
+                new PatchInfo(currentLanguages).ToFile(file.FileName);
+        }
+
+        private void fileSaveClipboard_Click(object sender, EventArgs e)
+        {
+            Clipboard.SetText(new PatchInfo(currentLanguages).ToBase64());
+        }
+
+        private void fileLoadFile_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog file = new OpenFileDialog() {
+                AddExtension = true,
+                CheckFileExists = true,
+                DefaultExt = "ivo",
+                Filter = "Individual Voice Options|*.ivo",
+                InitialDirectory = Paths.ExecutableRoot,
+                RestoreDirectory = true
+            };
+
+            if (file.ShowDialog() == DialogResult.OK)
+            {
+                PatchInfo patch = new PatchInfo();
+
+                if (patch.FromFile(file.FileName))
+                {
+                    foreach (var lang in patch)
+                        SetLanguage(lang.Character, lang.OverLang, lang.UseLang);
+                }
+                else
+                {
+                    MessageBox.Show("Something went wrong loading the file!\n" +
+                                    "If you're sure the file is correct then please contact me ^-^",
+                                    "Load Failed");
+                }
+            }
+        }
+
+        private void fileLoadClipboard_Click(object sender, EventArgs e)
+        {
+            string base64 = Clipboard.GetText();
+            PatchInfo patch = new PatchInfo();
+
+            if (patch.FromBase64(base64))
+            {
+                foreach (var lang in patch)
+                    SetLanguage(lang.Character, lang.OverLang, lang.UseLang);
+            }
+            else
+            {
+                MessageBox.Show("Looks like there's something wrong with the text in your clipboard!\n" +
+                                "Please double check that you copied the right text, if the issue persists then contact me ^-^",
+                                "Load Failed");
+            }
         }
 
         private void settingCache_Click(object sender, EventArgs e)
@@ -436,6 +625,30 @@ namespace GGSTVoiceMod
         {
             Settings.BundleMods = !(Settings.BundleMods ?? false);
             settingBundle.Checked = (bool)Settings.BundleMods;
+        }
+
+        private void helpAbout_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("GGSTVoiceMod is a tool created by 'android ♥' to allow players to set individual voice languages for each character!\n\n" +
+                            "The tool works by generating mods for each language setting you choose and installing them directly to the game for you. " +
+                            "You can choose to either install the mods separately, or bundle them all into a single mod to save on space and load times!\n\n" +
+                            "GGSTVoiceMod requires internet access to function as it has to download the voice assets, " +
+                            "however you can use the 'Pre-cache' button in the 'File' menu to download everything ahead of time.\n\n" +
+                            "I hope the tool is easy to use and does what you want it to, but if you have any problems you can contact me anytime! Enjoy!! uwu",
+                            "About");
+        }
+
+        private void helpContact_Click(object sender, EventArgs e)
+        {
+            DialogResult result = MessageBox.Show("If you have any issues or are confused about the tool, please contact me!!\n\n" +
+                                                  "Discord: android <3#0003\n" +
+                                                  "Twitter: @drone_03\n\n" +
+                                                  "Would you like to submit a bug report on GitHub?",
+                                                  "Contact Me!",
+                                                  MessageBoxButtons.YesNo);
+
+            if (result == DialogResult.Yes)
+                Process.Start("explorer", "https://github.com/Unit-03/GGSTVoiceMod/issues/new");
         }
 
         #endregion

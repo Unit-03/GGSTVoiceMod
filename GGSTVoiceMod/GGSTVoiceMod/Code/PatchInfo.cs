@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 namespace GGSTVoiceMod
 {
@@ -30,7 +31,7 @@ namespace GGSTVoiceMod
                 return left.Character == right.Character &&
                        left.UseLang   == right.UseLang   &&
                        left.OverLang  == right.OverLang;
-                }
+            }
         }
 
         private class Enumerator : IEnumerator<LangPatch>
@@ -113,7 +114,7 @@ namespace GGSTVoiceMod
 
                 for (int u = 0; u < newPatch.Count; ++u)
                 {
-                    if (newPatch[i] == this[u])
+                    if (newPatch[u] == this[i])
                     {
                         skip = true;
                         break;
@@ -172,6 +173,73 @@ namespace GGSTVoiceMod
         public bool RemovePatch(string charId, string useId, string overId)
         {
             return RemovePatch(new LangPatch(charId, useId, overId));
+        }
+
+        public void ToFile(string filePath)
+        {
+            using FileStream stream = File.Create(filePath);
+            WriteData(stream);
+        }
+
+        public string ToBase64()
+        {
+            using MemoryStream stream = new MemoryStream();
+            WriteData(stream);
+            return Convert.ToBase64String(stream.ToArray());
+        }
+
+        private void WriteData(Stream stream)
+        {
+            using BinaryWriter writer = new BinaryWriter(stream);
+
+            writer.Write("IVO");
+
+            for (int i = 0; i < patches.Count; ++i)
+            {
+                writer.Write(patches[i].Character);
+                writer.Write(patches[i].UseLang);
+                writer.Write(patches[i].OverLang);
+            }
+        }
+
+        public bool FromFile(string filePath)
+        {
+            using FileStream stream = File.OpenRead(filePath);
+            return ReadData(stream);
+        }
+
+        public bool FromBase64(string base64)
+        {
+            using MemoryStream stream = new MemoryStream(Convert.FromBase64String(base64));
+            return ReadData(stream);
+        }
+
+        private bool ReadData(Stream stream)
+        {
+            try
+            {
+                using BinaryReader reader = new BinaryReader(stream);
+
+                string signature = reader.ReadString();
+
+                if (signature != "IVO")
+                    return false;
+
+                patches = new List<LangPatch>();
+
+                while (stream.Position != stream.Length)
+                {
+                    patches.Add(new LangPatch(reader.ReadString(),
+                                              reader.ReadString(),
+                                              reader.ReadString()));
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public IEnumerator<LangPatch> GetEnumerator() => new Enumerator(patches);
