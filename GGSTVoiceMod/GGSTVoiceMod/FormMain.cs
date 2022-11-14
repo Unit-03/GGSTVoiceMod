@@ -20,7 +20,7 @@ namespace GGSTVoiceMod
         private const int ENTRY_HEIGHT = 25;
 
         private Size entrySize = new Size(ENTRY_WIDTH, ENTRY_HEIGHT);
-        private Size rowSize   = new Size(ENTRY_WIDTH * (Constants.LANGUAGE_IDS.Length + 1), ENTRY_HEIGHT);
+        private Size rowSize   = new Size(ENTRY_WIDTH * (Constants.VOICE_LANG_IDS.Length + 1), ENTRY_HEIGHT);
 
         private Dictionary<string, LanguageSettings> previousLanguages = new Dictionary<string, LanguageSettings>();
         private Dictionary<string, LanguageSettings> currentLanguages  = new Dictionary<string, LanguageSettings>();
@@ -149,11 +149,11 @@ namespace GGSTVoiceMod
                 Size = entrySize
             });
 
-            foreach (var langId in Constants.LANGUAGE_IDS)
+            foreach (var langId in Constants.VOICE_LANG_IDS)
             {
                 headerFlow.Controls.Add(new Label() {
                     Size = entrySize,
-                    Text = Constants.Languages[langId].FullName,
+                    Text = Constants.VoiceLanguages[langId].FullName,
                     TextAlign = ContentAlignment.BottomCenter
                 });
             }
@@ -162,7 +162,7 @@ namespace GGSTVoiceMod
 
             languageControls = new Dictionary<string, Dictionary<string, ComboBox>>();
 
-            foreach (var charId in Constants.CHARACTER_IDS)
+            foreach (var charId in Constants.VOICE_CHAR_IDS)
             {
                 FlowLayoutPanel charFlow = SetupCharacterRow(charId);
                 flowMain.Controls.Add(charFlow);
@@ -182,20 +182,20 @@ namespace GGSTVoiceMod
 
             flow.Controls.Add(new Label() {
                 Size = entrySize,
-                Text = Constants.Characters[charId].ShortName,
+                Text = Constants.VoiceCharacters[charId].ShortName,
                 TextAlign = ContentAlignment.MiddleLeft
             });
 
             languageControls.Add(charId, new Dictionary<string, ComboBox>());
 
-            foreach (string langId in Constants.LANGUAGE_IDS)
+            foreach (string langId in Constants.VOICE_LANG_IDS)
             {
                 ComboBox dropdown = new ComboBox() {
                     Size = entrySize,
                     Name = $"drop_{charId}_{langId}"
                 };
 
-                dropdown.Items.AddRange(Constants.LANGUAGE_IDS);
+                dropdown.Items.AddRange(Constants.VOICE_LANG_IDS);
                 dropdown.SelectedIndexChanged += (obj, args) => SetLanguage(charId, langId, dropdown.SelectedItem.ToString(), true);
                 flow.Controls.Add(dropdown);
 
@@ -215,7 +215,7 @@ namespace GGSTVoiceMod
         {
             Dictionary<string, LanguageSettings> manifest = new Dictionary<string, LanguageSettings>();
 
-            foreach (string charId in Constants.CHARACTER_IDS)
+            foreach (string charId in Constants.VOICE_CHAR_IDS)
                 manifest.Add(charId, new LanguageSettings(charId));
 
             if (File.Exists(Paths.ModManifest))
@@ -237,7 +237,7 @@ namespace GGSTVoiceMod
 
                     if (manifest.ContainsKey(charId))
                     {
-                        if (Constants.LANGUAGE_IDS.Contains(langId) && Constants.LANGUAGE_IDS.Contains(useId))
+                        if (Constants.VOICE_LANG_IDS.Contains(langId) && Constants.VOICE_LANG_IDS.Contains(useId))
                             manifest[charId][langId] = useId;
                     }
                 }
@@ -257,7 +257,7 @@ namespace GGSTVoiceMod
 
             foreach (string charId in settings.Keys)
             {
-                foreach (string langId in Constants.LANGUAGE_IDS)
+                foreach (string langId in Constants.VOICE_LANG_IDS)
                 {
                     // No point writing languages that haven't been changed
                     if (langId == settings[charId][langId])
@@ -282,7 +282,7 @@ namespace GGSTVoiceMod
             else
             {
                 currentLanguages[charId][langId] = value;
-                languageControls[charId][langId].BackColor = Constants.Languages[value].Colour;
+                languageControls[charId][langId].BackColor = Constants.VoiceLanguages[value].Colour;
             }
         }
 
@@ -358,7 +358,7 @@ namespace GGSTVoiceMod
 
             if (failedPatches.Count > 0)
             {
-                string failedList = string.Join("\n", failedPatches.Select(patch => $"{Constants.Characters[patch.Character].ShortName} - {patch.OverLang} to {patch.UseLang}")
+                string failedList = string.Join("\n", failedPatches.Select(patch => $"{Constants.VoiceCharacters[patch.Character].ShortName} - {patch.OverLang} to {patch.UseLang}")
                                                                    .OrderBy(str => str));
 
                 if (patch.Count > 0)
@@ -421,7 +421,7 @@ namespace GGSTVoiceMod
         private void OnLanguageChanged(string charId, string langId, string selectedLang)
         {
             currentLanguages[charId][langId] = selectedLang;
-            languageControls[charId][langId].BackColor = Constants.Languages[selectedLang].Colour;
+            languageControls[charId][langId].BackColor = Constants.VoiceLanguages[selectedLang].Colour;
         }
 
         private void FormMain_FormClosing(object sender, FormClosingEventArgs e)
@@ -553,14 +553,14 @@ namespace GGSTVoiceMod
 
             Settings.UseCache = true;
 
-            int assetCount = Constants.CHARACTER_IDS.Length * Constants.LANGUAGE_IDS.Length;
+            int assetCount = Constants.VOICE_CHAR_IDS.Length * Constants.VOICE_LANG_IDS.Length;
             long downloadSize = 0;
 
             SetStatus("Calculating download size", assetCount);
 
-            foreach (string charId in Constants.CHARACTER_IDS)
+            foreach (string charId in Constants.VOICE_CHAR_IDS)
             {
-                foreach (string langId in Constants.LANGUAGE_IDS)
+                foreach (string langId in Constants.VOICE_LANG_IDS)
                 {
                     downloadSize += await DownloadManager.GetDownloadSize(charId, langId);
                     IncrementProgress();
@@ -579,9 +579,9 @@ namespace GGSTVoiceMod
             {
                 SetStatus("Pre-caching assets", assetCount);
 
-                foreach (string charId in Constants.CHARACTER_IDS)
+                foreach (string charId in Constants.VOICE_CHAR_IDS)
                 {
-                    foreach (string langId in Constants.LANGUAGE_IDS)
+                    foreach (string langId in Constants.VOICE_LANG_IDS)
                     {
                         await DownloadManager.DownloadAsset(charId, langId);
                         IncrementProgress();

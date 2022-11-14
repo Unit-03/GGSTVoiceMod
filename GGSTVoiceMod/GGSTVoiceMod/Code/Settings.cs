@@ -8,6 +8,7 @@ namespace GGSTVoiceMod
 
         private const string CACHE_ID     = "cache";
         private const string BUNDLE_ID    = "bundle";
+        private const string SILENCE_ID   = "silence";
         private const string GAME_ROOT_ID = "gameRoot";
 
         #endregion
@@ -24,6 +25,11 @@ namespace GGSTVoiceMod
             set => _bundleMods = value;
         }
 
+        public static bool? SilenceMissing {
+            get => _silenceMissing;
+            set => _silenceMissing = value;
+        }
+
         public static string GamePath {
             get => _gamePath;
             set {
@@ -36,9 +42,10 @@ namespace GGSTVoiceMod
 
         #region Fields
 
-        // The first two here could be auto-properties but for consistency I'm keeping them all the same
+        // These could just be auto-properties but for consistency and potential changes to their functionality later I'm keeping them like this
         private static bool? _useCache;
         private static bool? _bundleMods;
+        private static bool? _silenceMissing;
         private static string _gamePath;
 
         #endregion
@@ -74,6 +81,10 @@ namespace GGSTVoiceMod
                         if (bool.TryParse(value, out bool bundle))
                             BundleMods = bundle;
                         break;
+                    case SILENCE_ID:
+                        if (bool.TryParse(value, out bool silence))
+                            SilenceMissing = silence;
+                        break;
                     case GAME_ROOT_ID:
                         if (File.Exists(value))
                             GamePath = value;
@@ -90,6 +101,8 @@ namespace GGSTVoiceMod
                 writer.WriteLine($"{CACHE_ID}={UseCache}");
             if (BundleMods != null)
                 writer.WriteLine($"{BUNDLE_ID}={BundleMods}");
+            if (SilenceMissing != null)
+                writer.WriteLine($"{SILENCE_ID}={SilenceMissing}");
             if (GamePath != null)
                 writer.WriteLine($"{GAME_ROOT_ID}={GamePath}");
         }

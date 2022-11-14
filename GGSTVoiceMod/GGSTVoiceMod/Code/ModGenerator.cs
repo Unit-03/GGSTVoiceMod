@@ -29,19 +29,19 @@ namespace GGSTVoiceMod
                 using Stream stream = await DownloadManager.DownloadAsset(langPatch.Character, langPatch.UseLang);
                 using ZipArchive zip = new ZipArchive(stream);
 
-                Paths.CharacterID = langPatch.Character;
-                Paths.LanguageID  = langPatch.UseLang;
+                Paths.VoiceCharID = langPatch.Character;
+                Paths.VoiceLangID  = langPatch.UseLang;
 
-                Directory.CreateDirectory(Paths.GenUnpack);
+                Directory.CreateDirectory(Paths.VoiceGenUnpack);
 
                 // Unpack the asset bundle into a temporary directory
-                await Task.Run(() => zip.ExtractToDirectory(Paths.GenUnpack));
+                await Task.Run(() => zip.ExtractToDirectory(Paths.VoiceGenUnpack));
 
                 // Rename the relevant directories to the new language
-                await Task.Run(() => RecursiveRename(Paths.GenUnpack, langPatch.UseLang, langPatch.OverLang));
+                await Task.Run(() => RecursiveRename(Paths.VoiceGenUnpack, langPatch.UseLang, langPatch.OverLang));
 
                 // Generate the mod with UnrealPak
-                await Task.Run(() => CreatePak(Paths.GenUnpack, Paths.GenPakFile));
+                await Task.Run(() => CreatePak(Paths.VoiceGenUnpack, Paths.VoiceGenPakFile));
 
                 // Move the generated mod to the mods folder and copy the signature file over
                 string modRoot = $"{Paths.ModInstall}/{langPatch.Character}";
@@ -51,7 +51,7 @@ namespace GGSTVoiceMod
 
                 string modFileName = Path.Combine(modRoot, $"{langPatch.UseLang} over {langPatch.OverLang}");
 
-                File.Move(Paths.GenPakFile, $"{modFileName}.pak", true);
+                File.Move(Paths.VoiceGenPakFile, $"{modFileName}.pak", true);
                 File.Copy(Paths.GameSig,    $"{modFileName}.sig", true);
 
                 // Invoke the callback so we can do updates inbetween iterations
@@ -77,19 +77,19 @@ namespace GGSTVoiceMod
                 using Stream stream = await DownloadManager.DownloadAsset(langPatch.Character, langPatch.UseLang);
                 using ZipArchive zip = new ZipArchive(stream);
 
-                Paths.CharacterID = langPatch.Character;
-                Paths.LanguageID = langPatch.UseLang;
+                Paths.VoiceCharID = langPatch.Character;
+                Paths.VoiceLangID = langPatch.UseLang;
 
-                Directory.CreateDirectory(Paths.GenUnpack);
+                Directory.CreateDirectory(Paths.VoiceGenUnpack);
 
                 // Unpack the asset bundle into a temporary directory
-                await Task.Run(() => zip.ExtractToDirectory(Paths.GenUnpack));
+                await Task.Run(() => zip.ExtractToDirectory(Paths.VoiceGenUnpack));
 
                 // Rename the relevant directories to the new language
-                await Task.Run(() => RecursiveRename(Paths.GenUnpack, langPatch.UseLang, langPatch.OverLang));
+                await Task.Run(() => RecursiveRename(Paths.VoiceGenUnpack, langPatch.UseLang, langPatch.OverLang));
 
                 // Move the renamed assets into the bundle directory
-                await Task.Run(() => MoveSubDirectories(Paths.GenUnpack, Paths.GenBundleUnpack));
+                await Task.Run(() => MoveSubDirectories(Paths.VoiceGenUnpack, Paths.GenBundleUnpack));
 
                 // Invoke the callback so we can do updates inbetween iterations
                 iterationCallback?.Invoke();

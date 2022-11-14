@@ -91,7 +91,7 @@ namespace GGSTVoiceMod
         {
             foreach (var pair in settings)
             {
-                foreach (var langId in Constants.LANGUAGE_IDS)
+                foreach (var langId in Constants.VOICE_LANG_IDS)
                 {
                     // If this character's language is modified
                     if (pair.Value[langId] != langId)

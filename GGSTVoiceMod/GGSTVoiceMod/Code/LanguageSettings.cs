@@ -15,7 +15,7 @@ namespace GGSTVoiceMod
                 if (!languages.ContainsKey(key))
                     throw new KeyNotFoundException($"Index key '{key}' is not a valid language ID");
 
-                if (!Constants.Languages.ContainsKey(value))
+                if (!Constants.VoiceLanguages.ContainsKey(value))
                     throw new ArgumentException($"Value '{value}' is not a valid language ID");
 
                 languages[key] = value;
@@ -37,7 +37,7 @@ namespace GGSTVoiceMod
             CharacterID = charId;
             languages = new Dictionary<string, string>();
 
-            foreach (string langId in Constants.LANGUAGE_IDS)
+            foreach (string langId in Constants.VOICE_LANG_IDS)
                 languages.Add(langId, langId);
         }
 
