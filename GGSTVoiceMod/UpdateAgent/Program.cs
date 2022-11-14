@@ -8,17 +8,21 @@ using System.Threading.Tasks;
 
 using Octokit;
 
-using GGSTVoiceMod;
-
 namespace UpdateAgent
 {
     class Program
     {
+        private static string GitHubURL => "https://github.com"; // Root URL for GitHub
+        private static string GitHubUser => "Unit-03"; // Name of my GitHub account
+        private static string RepoName => "GGSTVoiceMod"; // Name of the repository for this application
+        private static string RepoURL => $"{GitHubURL}/{GitHubUser}/{RepoName}"; // The full URL for the repository
+        private static string LatestReleaseURL => $"{RepoURL}/releases/latest"; // The full URL for retrieving the latest release of this repository
+
         private static void Main(string[] args)
         {
             if (args.Length < 2)
                 return;
-            
+
             UpdateToVersion(args[0], args[1]).Wait();
         }
 
@@ -31,10 +35,10 @@ namespace UpdateAgent
 
             string root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-            GitHubClient client = new GitHubClient(new ProductHeaderValue(Paths.RepoName),
-                                                   new Uri($"{Paths.GitHubURL}/{Paths.GitHubUser}"));
+            GitHubClient client = new GitHubClient(new ProductHeaderValue(RepoName),
+                                                   new Uri($"{GitHubURL}/{GitHubUser}"));
 
-            var releases = await client.Repository.Release.GetAll(Paths.GitHubUser, Paths.RepoName);
+            var releases = await client.Repository.Release.GetAll(GitHubUser, RepoName);
 
             foreach (var release in releases)
             {

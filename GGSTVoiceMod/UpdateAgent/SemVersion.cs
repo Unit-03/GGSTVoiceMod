@@ -1,9 +1,7 @@
-﻿namespace GGSTVoiceMod
+﻿namespace UpdateAgent
 {
     public readonly struct SemVersion
     {
-        public static SemVersion Current => new SemVersion(0, 2, 1);
-
         public readonly byte Major;
         public readonly byte Minor;
         public readonly byte Patch;
