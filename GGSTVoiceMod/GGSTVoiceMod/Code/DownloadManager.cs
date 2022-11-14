@@ -46,31 +46,28 @@ namespace GGSTVoiceMod
             }
         }
 
-        public static async Task<Stream> DownloadAsset(string charId, string langId)
+        public static async Task<Stream> DownloadAsset(string url, string cache)
         {
-            Paths.VoiceCharID = charId;
-            Paths.VoiceLangID  = langId;
-
-            bool cached = File.Exists(Paths.VoiceAssetCache);
+            bool cached = File.Exists(cache);
 
             if (!cached && Settings.UseCache == true)
             {
-                string cacheDir = Path.GetDirectoryName(Paths.VoiceAssetCache);
+                string cacheDir = Path.GetDirectoryName(cache);
 
                 if (!Directory.Exists(cacheDir))
                     Directory.CreateDirectory(cacheDir);
 
                 using WebClient client = new WebClient();
-                await client.DownloadFileTaskAsync(new Uri(Paths.VoiceAssetDownloadURL), Paths.VoiceAssetCache);
+                await client.DownloadFileTaskAsync(new Uri(url), cache);
                 cached = true;
             }
 
             if (cached)
-                return File.OpenRead(Paths.VoiceAssetCache);
+                return File.OpenRead(cache);
 
-            HttpWebRequest request = WebRequest.CreateHttp(Paths.VoiceAssetDownloadURL);
+            HttpWebRequest request = WebRequest.CreateHttp(url);
             request.UserAgent = USER_AGENT;
-            request.Method    = METHOD_GET;
+            request.Method = METHOD_GET;
 
             using WebResponse response = await request.GetResponseAsync();
             return response.GetResponseStream();
@@ -88,15 +85,12 @@ namespace GGSTVoiceMod
             return await request.GetResponseAsync();
         }
 
-        public static async Task<long> GetDownloadSize(string charId, string langId)
+        public static async Task<long> GetDownloadSize(string url, string cache)
         {
-            Paths.VoiceCharID = charId;
-            Paths.VoiceLangID  = langId;
-
-            if (File.Exists(Paths.VoiceAssetCache))
+            if (File.Exists(cache))
                 return 0;
 
-            HttpWebRequest request = WebRequest.CreateHttp(Paths.VoiceAssetDownloadURL);
+            HttpWebRequest request = WebRequest.CreateHttp(url);
             request.UserAgent = USER_AGENT;
             request.Method    = METHOD_HEAD;
 
@@ -109,7 +103,12 @@ namespace GGSTVoiceMod
             long totalSize = 0;
 
             foreach (var patch in patchInfo)
-                totalSize += await GetDownloadSize(patch.Character, patch.UseLang);
+            {
+                Paths.VoiceCharID = patch.Character;
+                Paths.VoiceLangID = patch.UseLang;
+
+                totalSize += await GetDownloadSize(Paths.VoiceAssetDownloadURL, Paths.VoiceAssetCache);
+            }
 
             return totalSize;
         }

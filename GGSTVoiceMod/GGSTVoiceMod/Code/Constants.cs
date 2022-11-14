@@ -50,7 +50,7 @@ namespace GGSTVoiceMod
         public static readonly Dictionary<string, LanguageInfo> VoiceLanguages = new Dictionary<string, LanguageInfo>() {
             { "ENG", new LanguageInfo("ENG", "English",  Color.FromArgb(255, 192, 192)) },
             { "JPN", new LanguageInfo("JPN", "Japanese", Color.FromArgb(192, 255, 192)) },
-            { "KOR", new LanguageInfo("KOR", "Korean",   Color.FromArgb(192, 128, 255)) }
+            { "KOR", new LanguageInfo("KOR", "Korean",   Color.FromArgb(192, 192, 255)) }
         };
 
         public static readonly string[] VOICE_CHAR_IDS = new string[] {
@@ -106,16 +106,21 @@ namespace GGSTVoiceMod
         #region Narration
 
         public static readonly string[] NARR_LANG_IDS = new string[] {
+            "DEF", // Default Strive
             "ENG", // English
             "JPN"  // Japanese
         };
 
         public static Dictionary<string, LanguageInfo> NarrLanguages = new Dictionary<string, LanguageInfo>() {
+            { "DEF", new LanguageInfo("DEF", "Strive",   Color.FromArgb(255, 255, 255)) },
             { "ENG", new LanguageInfo("ENG", "English",  Color.FromArgb(255, 255, 255)) },
             { "JPN", new LanguageInfo("JPN", "Japanese", Color.FromArgb(255, 255, 255)) }
         };
 
         public static readonly Dictionary<string, string[]> NARR_CHAR_IDS = new Dictionary<string, string[]> {
+            // Default Strive
+            { "DEF", new string[] {
+            }},
             // English
             { "ENG", new string[] { "00", 
                                     "AXL",

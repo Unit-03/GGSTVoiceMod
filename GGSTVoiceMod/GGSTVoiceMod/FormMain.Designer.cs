@@ -55,7 +55,13 @@ namespace GGSTVoiceMod
             this.menuHelp = new System.Windows.Forms.ToolStripMenuItem();
             this.helpAbout = new System.Windows.Forms.ToolStripMenuItem();
             this.helpContact = new System.Windows.Forms.ToolStripMenuItem();
+            this.panelNarration = new System.Windows.Forms.Panel();
+            this.checkSilence = new System.Windows.Forms.CheckBox();
+            this.dropNarrChar = new System.Windows.Forms.ComboBox();
+            this.dropNarrLang = new System.Windows.Forms.ComboBox();
+            this.lblNarration = new System.Windows.Forms.Label();
             this.stripMain.SuspendLayout();
+            this.panelNarration.SuspendLayout();
             this.SuspendLayout();
             // 
             // textGamePath
@@ -101,7 +107,7 @@ namespace GGSTVoiceMod
             this.flowMain.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowMain.Location = new System.Drawing.Point(12, 56);
             this.flowMain.Name = "flowMain";
-            this.flowMain.Size = new System.Drawing.Size(500, 555);
+            this.flowMain.Size = new System.Drawing.Size(500, 489);
             this.flowMain.TabIndex = 4;
             this.flowMain.WrapContents = false;
             // 
@@ -167,21 +173,21 @@ namespace GGSTVoiceMod
             // filePrecache
             // 
             this.filePrecache.Name = "filePrecache";
-            this.filePrecache.Size = new System.Drawing.Size(180, 22);
+            this.filePrecache.Size = new System.Drawing.Size(127, 22);
             this.filePrecache.Text = "Pre-cache";
             this.filePrecache.Click += new System.EventHandler(this.filePrecache_Click);
             // 
             // fileUninstall
             // 
             this.fileUninstall.Name = "fileUninstall";
-            this.fileUninstall.Size = new System.Drawing.Size(180, 22);
+            this.fileUninstall.Size = new System.Drawing.Size(127, 22);
             this.fileUninstall.Text = "Uninstall";
             this.fileUninstall.Click += new System.EventHandler(this.fileUninstall_Click);
             // 
             // fileSeparator1
             // 
             this.fileSeparator1.Name = "fileSeparator1";
-            this.fileSeparator1.Size = new System.Drawing.Size(177, 6);
+            this.fileSeparator1.Size = new System.Drawing.Size(124, 6);
             // 
             // fileSave
             // 
@@ -189,20 +195,20 @@ namespace GGSTVoiceMod
             this.fileSaveFile,
             this.fileSaveClipboard});
             this.fileSave.Name = "fileSave";
-            this.fileSave.Size = new System.Drawing.Size(180, 22);
+            this.fileSave.Size = new System.Drawing.Size(127, 22);
             this.fileSave.Text = "Save";
             // 
             // fileSaveFile
             // 
             this.fileSaveFile.Name = "fileSaveFile";
-            this.fileSaveFile.Size = new System.Drawing.Size(180, 22);
+            this.fileSaveFile.Size = new System.Drawing.Size(141, 22);
             this.fileSaveFile.Text = "To File";
             this.fileSaveFile.Click += new System.EventHandler(this.fileSaveFile_Click);
             // 
             // fileSaveClipboard
             // 
             this.fileSaveClipboard.Name = "fileSaveClipboard";
-            this.fileSaveClipboard.Size = new System.Drawing.Size(180, 22);
+            this.fileSaveClipboard.Size = new System.Drawing.Size(141, 22);
             this.fileSaveClipboard.Text = "To Clipboard";
             this.fileSaveClipboard.Click += new System.EventHandler(this.fileSaveClipboard_Click);
             // 
@@ -212,20 +218,20 @@ namespace GGSTVoiceMod
             this.fileLoadFile,
             this.fileLoadClipboard});
             this.fileLoad.Name = "fileLoad";
-            this.fileLoad.Size = new System.Drawing.Size(180, 22);
+            this.fileLoad.Size = new System.Drawing.Size(127, 22);
             this.fileLoad.Text = "Load";
             // 
             // fileLoadFile
             // 
             this.fileLoadFile.Name = "fileLoadFile";
-            this.fileLoadFile.Size = new System.Drawing.Size(180, 22);
+            this.fileLoadFile.Size = new System.Drawing.Size(157, 22);
             this.fileLoadFile.Text = "From File";
             this.fileLoadFile.Click += new System.EventHandler(this.fileLoadFile_Click);
             // 
             // fileLoadClipboard
             // 
             this.fileLoadClipboard.Name = "fileLoadClipboard";
-            this.fileLoadClipboard.Size = new System.Drawing.Size(180, 22);
+            this.fileLoadClipboard.Size = new System.Drawing.Size(157, 22);
             this.fileLoadClipboard.Text = "From Clipboard";
             this.fileLoadClipboard.Click += new System.EventHandler(this.fileLoadClipboard_Click);
             // 
@@ -275,12 +281,66 @@ namespace GGSTVoiceMod
             this.helpContact.Text = "Contact Me";
             this.helpContact.Click += new System.EventHandler(this.helpContact_Click);
             // 
+            // panelNarration
+            // 
+            this.panelNarration.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.panelNarration.BackColor = System.Drawing.SystemColors.ControlLight;
+            this.panelNarration.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelNarration.Controls.Add(this.checkSilence);
+            this.panelNarration.Controls.Add(this.dropNarrChar);
+            this.panelNarration.Controls.Add(this.dropNarrLang);
+            this.panelNarration.Controls.Add(this.lblNarration);
+            this.panelNarration.Location = new System.Drawing.Point(12, 551);
+            this.panelNarration.Name = "panelNarration";
+            this.panelNarration.Size = new System.Drawing.Size(500, 60);
+            this.panelNarration.TabIndex = 9;
+            // 
+            // checkSilence
+            // 
+            this.checkSilence.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.checkSilence.AutoSize = true;
+            this.checkSilence.Location = new System.Drawing.Point(339, 32);
+            this.checkSilence.Name = "checkSilence";
+            this.checkSilence.Size = new System.Drawing.Size(158, 19);
+            this.checkSilence.TabIndex = 3;
+            this.checkSilence.Text = "Silence missing narration";
+            this.checkSilence.UseVisualStyleBackColor = true;
+            // 
+            // dropNarrChar
+            // 
+            this.dropNarrChar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.dropNarrChar.Location = new System.Drawing.Point(185, 5);
+            this.dropNarrChar.Name = "dropNarrChar";
+            this.dropNarrChar.Size = new System.Drawing.Size(310, 23);
+            this.dropNarrChar.TabIndex = 2;
+            this.dropNarrChar.SelectedIndexChanged += new System.EventHandler(this.dropNarrChar_SelectedIndexChanged);
+            // 
+            // dropNarrLang
+            // 
+            this.dropNarrLang.Location = new System.Drawing.Point(69, 5);
+            this.dropNarrLang.Name = "dropNarrLang";
+            this.dropNarrLang.Size = new System.Drawing.Size(110, 23);
+            this.dropNarrLang.TabIndex = 1;
+            this.dropNarrLang.SelectedIndexChanged += new System.EventHandler(this.dropNarrLang_SelectedIndexChanged);
+            // 
+            // lblNarration
+            // 
+            this.lblNarration.AutoSize = true;
+            this.lblNarration.Location = new System.Drawing.Point(3, 8);
+            this.lblNarration.Name = "lblNarration";
+            this.lblNarration.Size = new System.Drawing.Size(60, 15);
+            this.lblNarration.TabIndex = 0;
+            this.lblNarration.Text = "Narration:";
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(524, 681);
+            this.Controls.Add(this.panelNarration);
             this.Controls.Add(this.lblStatus);
             this.Controls.Add(this.progressStatus);
             this.Controls.Add(this.btnPatch);
@@ -297,6 +357,8 @@ namespace GGSTVoiceMod
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormMain_FormClosing);
             this.stripMain.ResumeLayout(false);
             this.stripMain.PerformLayout();
+            this.panelNarration.ResumeLayout(false);
+            this.panelNarration.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -328,6 +390,11 @@ namespace GGSTVoiceMod
         private System.Windows.Forms.ToolStripMenuItem fileSaveClipboard;
         private System.Windows.Forms.ToolStripMenuItem fileLoadFile;
         private System.Windows.Forms.ToolStripMenuItem fileLoadClipboard;
+        private System.Windows.Forms.Panel panelNarration;
+        private System.Windows.Forms.Label lblNarration;
+        private System.Windows.Forms.ComboBox dropNarrLang;
+        private System.Windows.Forms.ComboBox dropNarrChar;
+        private System.Windows.Forms.CheckBox checkSilence;
     }
 }
 

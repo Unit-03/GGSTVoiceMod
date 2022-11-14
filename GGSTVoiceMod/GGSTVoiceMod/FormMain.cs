@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
+using Microsoft.Win32;
 
 namespace GGSTVoiceMod
 {
@@ -22,8 +23,8 @@ namespace GGSTVoiceMod
         private Size entrySize = new Size(ENTRY_WIDTH, ENTRY_HEIGHT);
         private Size rowSize   = new Size(ENTRY_WIDTH * (Constants.VOICE_LANG_IDS.Length + 1), ENTRY_HEIGHT);
 
-        private Dictionary<string, LanguageSettings> previousLanguages = new Dictionary<string, LanguageSettings>();
-        private Dictionary<string, LanguageSettings> currentLanguages  = new Dictionary<string, LanguageSettings>();
+        private ModManifest previousManifest;
+        private ModManifest currentManifest;
 
         private Dictionary<string, Dictionary<string, ComboBox>> languageControls = new Dictionary<string, Dictionary<string, ComboBox>>();
 
@@ -48,14 +49,21 @@ namespace GGSTVoiceMod
 
             Settings.Load();
 
+            if (string.IsNullOrEmpty(Settings.GamePath))
+                FindGameInstall();
+
             BasicControlsSetup();
             RetrieveLanguageSettings();
             SetupLanguageControls();
+            SetupNarrationControls();
 
             if (CheckInternetConnection())
             {
                 if (await CheckForNewRelease())
                 {
+                    MessageBox.Show("The tool will now exit to install the new version. It will automatically restart once it's ready!",
+                                    "Updating Tool",
+                                    MessageBoxButtons.OK);
                     Application.Exit();
                 }
                 else
@@ -117,6 +125,32 @@ namespace GGSTVoiceMod
             return false;
         }
 
+        private void FindGameInstall()
+        {
+            RegistryKey rootKey = Registry.LocalMachine.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall");
+            string[] nameList = rootKey.GetSubKeyNames();
+
+            for (int i = 0; i < nameList.Length; i++)
+            {
+                RegistryKey key = rootKey.OpenSubKey(nameList[i]);
+
+                if (key.GetValue("DisplayName")?.ToString() == "GUILTY GEAR -STRIVE-")
+                {
+                    string installPath = key.GetValue("InstallLocation")?.ToString();
+
+                    if (installPath != null)
+                    {
+                        installPath = Path.Combine(installPath, "GGST.exe");
+
+                        if (!string.IsNullOrEmpty(installPath) && File.Exists(installPath))
+                            Settings.GamePath = installPath;
+                    }
+
+                    break;
+                }
+            }
+        }
+
         private void BasicControlsSetup()
         {
             textGamePath.Enabled = false;
@@ -129,11 +163,10 @@ namespace GGSTVoiceMod
 
         private void RetrieveLanguageSettings()
         {
-            previousLanguages = ReadManifest();
-            currentLanguages  = new Dictionary<string, LanguageSettings>(previousLanguages.Count);
+            previousManifest = new ModManifest(Paths.ModManifest);
+            currentManifest  = new ModManifest(previousManifest);
 
-            foreach (var pair in previousLanguages)
-                currentLanguages.Add(pair.Key, pair.Value.Clone());
+            checkSilence.Checked = previousManifest.SilencedNarration;
         }
 
         private void SetupLanguageControls()
@@ -201,76 +234,32 @@ namespace GGSTVoiceMod
 
                 languageControls[charId].Add(langId, dropdown);
 
-                SetLanguage(charId, langId, currentLanguages[charId][langId]);
+                SetLanguage(charId, langId, currentManifest[charId][langId]);
             }
 
             return flow;
+        }
+
+        private void SetupNarrationControls()
+        {
+            string currLang = currentManifest.NarrationLanguage;
+            string currChar = currentManifest.NarrationCharacter;
+
+            dropNarrLang.Items.AddRange(Constants.NarrLanguages.Select(lang => lang.Value.FullName).ToArray());
+            dropNarrLang.SelectedItem = Constants.NarrLanguages[currLang].FullName;
+            
+            if (!string.IsNullOrEmpty(currChar))
+                dropNarrChar.SelectedItem = Constants.NarrCharacters[currChar].FullName;
         }
 
         #endregion
 
         #region Utility
 
-        private Dictionary<string, LanguageSettings> ReadManifest()
+        private void WriteManifest(ModManifest manifest)
         {
-            Dictionary<string, LanguageSettings> manifest = new Dictionary<string, LanguageSettings>();
-
-            foreach (string charId in Constants.VOICE_CHAR_IDS)
-                manifest.Add(charId, new LanguageSettings(charId));
-
-            if (File.Exists(Paths.ModManifest))
-            {
-                string[] lines = File.ReadAllLines(Paths.ModManifest);
-
-                for (int i = 0; i < lines.Length; ++i)
-                {
-                    string[] parts = lines[i].Split('=');
-
-                    if (parts.Length < 2)
-                        continue;
-
-                    string[] keys = parts[0].Split('_');
-
-                    string charId = keys[0].Trim().ToUpper();
-                    string langId = keys[1].Trim().ToUpper();
-                    string useId = parts[1].Trim().ToUpper();
-
-                    if (manifest.ContainsKey(charId))
-                    {
-                        if (Constants.VOICE_LANG_IDS.Contains(langId) && Constants.VOICE_LANG_IDS.Contains(useId))
-                            manifest[charId][langId] = useId;
-                    }
-                }
-            }
-
-            return manifest;
-        }
-
-        private void WriteManifest(Dictionary<string, LanguageSettings> settings)
-        {
-            string manifestDir = Path.GetDirectoryName(Paths.ModManifest);
-
-            if (!Directory.Exists(manifestDir))
-                Directory.CreateDirectory(manifestDir);
-
-            using StreamWriter writer = File.CreateText(Paths.ModManifest);
-
-            foreach (string charId in settings.Keys)
-            {
-                foreach (string langId in Constants.VOICE_LANG_IDS)
-                {
-                    // No point writing languages that haven't been changed
-                    if (langId == settings[charId][langId])
-                        continue;
-
-                    writer.WriteLine($"{charId}_{langId}={settings[charId][langId]}");
-                }
-            }
-
-            previousLanguages.Clear();
-
-            foreach (var pair in settings)
-                previousLanguages.Add(pair.Key, pair.Value.Clone());
+            manifest.Save(Paths.ModManifest);
+            previousManifest = new ModManifest(manifest);
         }
 
         private void SetLanguage(string charId, string langId, string value, bool fromDropdown = false)
@@ -281,7 +270,7 @@ namespace GGSTVoiceMod
             }
             else
             {
-                currentLanguages[charId][langId] = value;
+                currentManifest[charId][langId] = value;
                 languageControls[charId][langId].BackColor = Constants.VoiceLanguages[value].Colour;
             }
         }
@@ -341,7 +330,10 @@ namespace GGSTVoiceMod
 
                     if (!assetsChecked.Contains(assetCode))
                     {
-                        downloadSize += await DownloadManager.GetDownloadSize(patch[i].Character, patch[i].UseLang);
+                        Paths.VoiceCharID = patch[i].Character;
+                        Paths.VoiceLangID = patch[i].UseLang;
+
+                        downloadSize += await DownloadManager.GetDownloadSize(Paths.VoiceAssetDownloadURL, Paths.VoiceAssetCache);
                         assetsChecked.Add(assetCode);
                     }
                 }
@@ -420,7 +412,7 @@ namespace GGSTVoiceMod
 
         private void OnLanguageChanged(string charId, string langId, string selectedLang)
         {
-            currentLanguages[charId][langId] = selectedLang;
+            currentManifest[charId][langId] = selectedLang;
             languageControls[charId][langId].BackColor = Constants.VoiceLanguages[selectedLang].Colour;
         }
 
@@ -491,18 +483,24 @@ namespace GGSTVoiceMod
 
             Enabled = false;
 
-            PatchInfo prev = new PatchInfo(previousLanguages);
-            PatchInfo curr = new PatchInfo(currentLanguages);
+            PatchInfo prev = new PatchInfo(previousManifest.VoiceSettings);
+            PatchInfo curr = new PatchInfo(currentManifest .VoiceSettings);
 
             // First we gotta go through and uninstall any old mods that the user didn't set this time
             if (Directory.Exists(Paths.ModInstall))
             {
                 PatchInfo uninstallDiff = prev.Diff(curr);
+                bool uninstallNarration = previousManifest.NarrationLanguage  != currentManifest.NarrationLanguage ||
+                                          previousManifest.NarrationCharacter != currentManifest.NarrationCharacter;
+
+                int uninstallCount = uninstallDiff.Count;
+                if (uninstallNarration)
+                    ++uninstallCount;
+
+                SetStatus("Uninstalling old mods", uninstallCount);
 
                 if (uninstallDiff.Count > 0)
                 {
-                    SetStatus("Uninstalling old mods", uninstallDiff.Count);
-
                     foreach (var patch in uninstallDiff)
                     {
                         string modRoot = Path.Combine(Paths.ModInstall, patch.Character);
@@ -512,38 +510,56 @@ namespace GGSTVoiceMod
 
                         IncrementProgress();
                     }
-
-                    ClearStatus();
                 }
+
+                if (uninstallNarration)
+                {
+                    string narrationRoot = Path.Combine(Paths.ModInstall, "Narration");
+
+                    if (Directory.Exists(narrationRoot))
+                        Directory.Delete(narrationRoot, true);
+
+                    IncrementProgress();
+                }
+
+                ClearStatus();
             }
 
             // Now we can install the new stuff!
             PatchInfo installDiff = curr.Diff(prev);
+            (bool validated, long downloadSize) = await ValidateAssetData(installDiff);
 
-            if (installDiff.Count > 0)
+            if (Settings.UseCache == null)
             {
-                (bool validated, long downloadSize) = await ValidateAssetData(installDiff);
-
-                if (validated)
-                {
-                    if (Settings.UseCache == null)
-                    {
-                        Settings.UseCache = DisplayCachePrompt(downloadSize);
-                        settingCache.Checked = Settings.UseCache ?? false;
-                    }
-                    if (Settings.BundleMods == null)
-                    {
-                        Settings.BundleMods = DisplayBundlePrompt();
-                        settingBundle.Checked = Settings.BundleMods ?? false;
-                    }
-
-                    SetStatus("Generating mods", installDiff.Count);
-                    await ModGenerator.Generate(installDiff, () => IncrementProgress());
-                    ClearStatus();
-                }
+                Settings.UseCache = DisplayCachePrompt(downloadSize);
+                settingCache.Checked = Settings.UseCache ?? false;
+            }
+            if (Settings.BundleMods == null)
+            {
+                Settings.BundleMods = DisplayBundlePrompt();
+                settingBundle.Checked = Settings.BundleMods ?? false;
             }
 
-            WriteManifest(currentLanguages);
+            if (validated && installDiff.Count > 0)
+            {
+                SetStatus("Generating voice mods", installDiff.Count);
+                await ModGenerator.GenerateVoiceMod(installDiff, () => IncrementProgress());
+                ClearStatus();
+            }
+
+            bool installNarration = currentManifest.NarrationLanguage != "DEF" &&
+                                   (currentManifest.NarrationLanguage  != previousManifest.NarrationLanguage ||
+                                    currentManifest.NarrationCharacter != previousManifest.NarrationCharacter);
+
+            if (installNarration)
+            {
+                SetStatus("Generating narration mod", 1);
+                await ModGenerator.GenerateNarrationMod(currentManifest.NarrationLanguage, currentManifest.NarrationCharacter, checkSilence.Checked);
+                IncrementProgress();
+                ClearStatus();
+            }
+
+            WriteManifest(currentManifest);
             Enabled = true;
         }
 
@@ -554,6 +570,10 @@ namespace GGSTVoiceMod
             Settings.UseCache = true;
 
             int assetCount = Constants.VOICE_CHAR_IDS.Length * Constants.VOICE_LANG_IDS.Length;
+
+            foreach (string langId in Constants.NARR_LANG_IDS)
+                assetCount += Constants.NARR_CHAR_IDS[langId].Length;
+
             long downloadSize = 0;
 
             SetStatus("Calculating download size", assetCount);
@@ -562,7 +582,22 @@ namespace GGSTVoiceMod
             {
                 foreach (string langId in Constants.VOICE_LANG_IDS)
                 {
-                    downloadSize += await DownloadManager.GetDownloadSize(charId, langId);
+                    Paths.VoiceCharID = charId;
+                    Paths.VoiceLangID = langId;
+
+                    downloadSize += await DownloadManager.GetDownloadSize(Paths.VoiceAssetDownloadURL, Paths.VoiceAssetCache);
+                    IncrementProgress();
+                }
+            }
+
+            foreach (string langId in Constants.NARR_LANG_IDS)
+            {
+                foreach (string charId in Constants.NARR_CHAR_IDS[langId])
+                {
+                    Paths.NarrLangID = langId;
+                    Paths.NarrCharID = charId;
+
+                    downloadSize += await DownloadManager.GetDownloadSize(Paths.NarrAssetDownloadURL, Paths.NarrAssetCache);
                     IncrementProgress();
                 }
             }
@@ -583,7 +618,22 @@ namespace GGSTVoiceMod
                 {
                     foreach (string langId in Constants.VOICE_LANG_IDS)
                     {
-                        await DownloadManager.DownloadAsset(charId, langId);
+                        Paths.VoiceCharID = charId;
+                        Paths.VoiceLangID = langId;
+
+                        await DownloadManager.DownloadAsset(Paths.VoiceAssetDownloadURL, Paths.VoiceAssetCache);
+                        IncrementProgress();
+                    }
+                }
+
+                foreach (string langId in Constants.NARR_LANG_IDS)
+                {
+                    foreach (string charId in Constants.NARR_CHAR_IDS[langId])
+                    {
+                        Paths.NarrLangID = langId;
+                        Paths.NarrCharID = charId;
+
+                        await DownloadManager.DownloadAsset(Paths.NarrAssetDownloadURL, Paths.NarrAssetCache);
                         IncrementProgress();
                     }
                 }
@@ -598,7 +648,7 @@ namespace GGSTVoiceMod
         {
             if (Directory.Exists(Paths.ModInstall))
             {
-                DialogResult result = MessageBox.Show("Are you sure you want to uninstall all the voice mods?\n" +
+                DialogResult result = MessageBox.Show("Are you sure you want to uninstall all the mods?\n" +
                                                       "You won't be able to recover them and will have to generate them again later",
                                                       "Uninstall All",
                                                       MessageBoxButtons.YesNo,
@@ -625,12 +675,12 @@ namespace GGSTVoiceMod
             };
 
             if (file.ShowDialog() == DialogResult.OK)
-                new PatchInfo(currentLanguages).ToFile(file.FileName);
+                new PatchInfo(currentManifest.VoiceSettings).ToFile(file.FileName);
         }
 
         private void fileSaveClipboard_Click(object sender, EventArgs e)
         {
-            Clipboard.SetText(new PatchInfo(currentLanguages).ToBase64());
+            Clipboard.SetText(new PatchInfo(currentManifest.VoiceSettings).ToBase64());
         }
 
         private void fileLoadFile_Click(object sender, EventArgs e)
@@ -715,6 +765,33 @@ namespace GGSTVoiceMod
 
             if (result == DialogResult.Yes)
                 Process.Start("explorer", "https://github.com/Unit-03/GGSTVoiceMod/issues/new");
+        }
+
+        private void dropNarrLang_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            currentManifest.NarrationLanguage = Constants.NarrLanguages.First(langInfo => langInfo.Value.FullName == dropNarrLang.Text).Key;
+
+            string[] charIds = Constants.NARR_CHAR_IDS[currentManifest.NarrationLanguage];
+
+            dropNarrChar.Items.Clear();
+            dropNarrChar.Items.AddRange(charIds.Select(id => Constants.NarrCharacters[id].FullName).ToArray());
+
+            bool defaultLang = currentManifest.NarrationLanguage == "DEF";
+            dropNarrChar.Enabled = !defaultLang;
+
+            if (!defaultLang)
+            {
+                if (charIds.Any(id => id == currentManifest.NarrationCharacter))
+                    dropNarrChar.SelectedItem = currentManifest.NarrationCharacter;
+                else
+                    dropNarrChar.SelectedItem = "Default";
+            }
+        }
+
+        private void dropNarrChar_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (dropNarrChar.SelectedItem != null)
+                currentManifest.NarrationCharacter = Constants.NarrCharacters.First(charInfo => charInfo.Value.FullName == dropNarrChar.SelectedItem.ToString()).Key;
         }
 
         #endregion

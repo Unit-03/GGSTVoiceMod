@@ -2,7 +2,7 @@
 {
     public readonly struct SemVersion
     {
-        public static SemVersion Current => new SemVersion(0, 1, 1);
+        public static SemVersion Current => new SemVersion(0, 2, 0);
 
         public readonly byte Major;
         public readonly byte Minor;

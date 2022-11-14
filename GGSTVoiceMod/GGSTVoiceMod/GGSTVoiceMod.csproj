@@ -5,6 +5,17 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>Icon (FAU).ico</ApplicationIcon>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,7 +35,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy &quot;$(SolutionDir)UpdateAgent\$(OutDir)&quot; &quot;$(TargetDir)&quot;&#xD;&#xA;xcopy &quot;$(TargetDir)&quot; &quot;$(SolutionDir)Builds\$(ConfigurationName)\&quot; /s /y&#xD;&#xA;del &quot;$(SolutionDir)Builds\$(ConfigurationName)\*.dev.json&quot;&#xD;&#xA;del &quot;$(SolutionDir)Builds\$(ConfigurationName)\*.pdb&quot;" />
+    <Exec Command="copy &quot;$(SolutionDir)UpdateAgent\$(OutDir)&quot; &quot;$(TargetDir)&quot;&#xD;&#xA;xcopy &quot;$(TargetDir)&quot; &quot;$(SolutionDir)Builds\$(ConfigurationName)\&quot; /s /y" />
   </Target>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">

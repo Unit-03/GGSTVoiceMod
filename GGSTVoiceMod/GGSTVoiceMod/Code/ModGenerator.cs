@@ -10,7 +10,63 @@ namespace GGSTVoiceMod
     {
         #region Methods
 
-        public static Task Generate(PatchInfo patch, Action iterationCallback = null)
+        public static Task GenerateNarrationMod(string langId, string charId, bool silent)
+        {
+            return GenerateNarration(langId, charId, silent);
+        }
+
+        private static async Task GenerateNarration(string langId, string charId, bool silent)
+        {
+            Paths.NarrLangID = langId;
+            Paths.NarrCharID = charId;
+
+            // Make sure the temp folder is clear before generating or it could break things
+            if (Directory.Exists(Paths.GenTemp))
+                Directory.Delete(Paths.GenTemp, true);
+
+            using Stream stream = await DownloadManager.DownloadAsset(Paths.NarrAssetDownloadURL, Paths.NarrAssetCache);
+            using ZipArchive zip = new ZipArchive(stream);
+
+            Directory.CreateDirectory(Paths.NarrGenUnpack);
+
+            // Unpack the asset bundle into a temporary directory
+            await Task.Run(() => zip.ExtractToDirectory(Paths.NarrGenUnpack));
+
+            // Either rename or delete the silent audio files depending on the user's choice
+            await Task.Run(() => ProcessEmptyAudio(Paths.NarrGenUnpack, silent));
+
+            // Generate the mod with UnrealPak
+            await Task.Run(() => CreatePak(Paths.NarrGenUnpack, Paths.NarrGenPakFile));
+
+            // Move the generated mod to the mods folder and copy the signature file over
+            string modRoot = $"{Paths.ModInstall}/Narration";
+
+            if (!Directory.Exists(modRoot))
+                Directory.CreateDirectory(modRoot);
+
+            string modFileName = Path.Combine(modRoot, $"{langId}_{charId}");
+
+            File.Move(Paths.NarrGenPakFile, $"{modFileName}.pak", true);
+            File.Copy(Paths.GameSig,        $"{modFileName}.sig", true);
+
+            // Clear out the temp files
+            Directory.Delete(Paths.GenTemp, true);
+        }
+
+        private static void ProcessEmptyAudio(string root, bool silence)
+        {
+            string[] files = Directory.GetFiles(root, "*_empty.*", SearchOption.AllDirectories);
+
+            for (int i = 0; i < files.Length; ++i)
+            {
+                if (silence)
+                    File.Move(files[i], files[i].Replace("_empty", ""), true);
+                else
+                    File.Delete(files[i]);
+            }
+        }
+
+        public static Task GenerateVoiceMod(PatchInfo patch, Action iterationCallback = null)
         {
             if (Settings.BundleMods == true)
                 return GenerateBundled(patch, iterationCallback);
@@ -26,11 +82,11 @@ namespace GGSTVoiceMod
 
             foreach (var langPatch in patch)
             {
-                using Stream stream = await DownloadManager.DownloadAsset(langPatch.Character, langPatch.UseLang);
-                using ZipArchive zip = new ZipArchive(stream);
-
                 Paths.VoiceCharID = langPatch.Character;
-                Paths.VoiceLangID  = langPatch.UseLang;
+                Paths.VoiceLangID = langPatch.UseLang;
+
+                using Stream stream = await DownloadManager.DownloadAsset(Paths.VoiceAssetDownloadURL, Paths.VoiceAssetCache);
+                using ZipArchive zip = new ZipArchive(stream);
 
                 Directory.CreateDirectory(Paths.VoiceGenUnpack);
 
@@ -52,7 +108,7 @@ namespace GGSTVoiceMod
                 string modFileName = Path.Combine(modRoot, $"{langPatch.UseLang} over {langPatch.OverLang}");
 
                 File.Move(Paths.VoiceGenPakFile, $"{modFileName}.pak", true);
-                File.Copy(Paths.GameSig,    $"{modFileName}.sig", true);
+                File.Copy(Paths.GameSig,         $"{modFileName}.sig", true);
 
                 // Invoke the callback so we can do updates inbetween iterations
                 iterationCallback?.Invoke();
@@ -74,11 +130,11 @@ namespace GGSTVoiceMod
 
             foreach (var langPatch in patch)
             {
-                using Stream stream = await DownloadManager.DownloadAsset(langPatch.Character, langPatch.UseLang);
-                using ZipArchive zip = new ZipArchive(stream);
-
                 Paths.VoiceCharID = langPatch.Character;
                 Paths.VoiceLangID = langPatch.UseLang;
+
+                using Stream stream = await DownloadManager.DownloadAsset(Paths.VoiceAssetDownloadURL, Paths.VoiceAssetCache);
+                using ZipArchive zip = new ZipArchive(stream);
 
                 Directory.CreateDirectory(Paths.VoiceGenUnpack);
 
