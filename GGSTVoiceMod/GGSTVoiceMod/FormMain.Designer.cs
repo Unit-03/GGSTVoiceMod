@@ -298,8 +298,7 @@ namespace GGSTVoiceMod
             // 
             // checkSilence
             // 
-            this.checkSilence.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.checkSilence.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.checkSilence.AutoSize = true;
             this.checkSilence.Location = new System.Drawing.Point(339, 32);
             this.checkSilence.Name = "checkSilence";

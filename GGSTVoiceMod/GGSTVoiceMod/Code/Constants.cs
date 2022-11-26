@@ -72,6 +72,7 @@ namespace GGSTVoiceMod
             "NAG", // Nagoriyuki
             "POT", // Potemkin
             "RAM", // Ramlethal Valentine
+            "SIN", // Sin Kiske
             "SOL", // Sol Badguy
             "TST", // Testament
             "ZAT"  // Zato-ONE
@@ -96,6 +97,7 @@ namespace GGSTVoiceMod
             { "NAG", new CharacterInfo("NAG", "Nagoriyuki",          "Nago"     ) },
             { "POT", new CharacterInfo("POT", "Potemkin"                        ) },
             { "RAM", new CharacterInfo("RAM", "Ramlethal Valentine", "Ramlethal") },
+            { "SIN", new CharacterInfo("SIN", "Sin Kiske",           "Sin"      ) },
             { "SOL", new CharacterInfo("SOL", "Sol Badguy",          "Sol"      ) },
             { "TST", new CharacterInfo("TST", "Testament"                       ) },
             { "ZAT", new CharacterInfo("ZAT", "Zato-ONE",            "Zato"     ) }
